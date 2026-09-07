@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
-import { signupSchema } from "@/lib/validations/auth"
+import { apiSignupSchema } from "@/lib/validations/auth"
 import { z } from "zod"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate input (use a subset without confirmPassword for API)
-    const apiSignupSchema = signupSchema.omit({ confirmPassword: true })
+    // Validate input
     const validatedData = apiSignupSchema.parse(body)
     
     // Check if user already exists
