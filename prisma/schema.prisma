@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model with authentication and wallet functionality
+model User {
+  id            String               @id @default(cuid())
+  name          String?
+  email         String               @unique
+  password      String
+  role          UserRole             @default(USER)
+  walletBalance Decimal              @default(0) @db.Decimal(10, 2)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  // Relations
+  walletTransactions WalletTransaction[]
+  digitalAccounts    DigitalAccount[]
+  smsOrders          SmsOrder[]
+  smmOrders          SmmOrder[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// Enum for user roles
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// Wallet transaction tracking
+model WalletTransaction {
+  id        String              @id @default(cuid())
+  userId    String
+  amount    Decimal             @db.Decimal(10, 2)
+  type      TransactionType
+  status    TransactionStatus   @default(PENDING)
+  reference String?             @unique // External reference ID
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+// Enum for transaction types
+enum TransactionType {
+  DEPOSIT
+  PURCHASE
+  REFUND
+}
+
+// Enum for transaction status
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Account categories for organizing digital accounts
+model AccountCategory {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  description String?
+  icon        String?          // Icon name or emoji
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  digitalAccounts DigitalAccount[]
+
+  @@index([slug])
+}
+
+// Digital accounts marketplace
+model DigitalAccount {
+  id          String           @id @default(cuid())
+  categoryId  String
+  title       String
+  price       Decimal          @db.Decimal(10, 2)
+  credentials String           // Encrypted credentials/payload (JSON or text)
+  status      AccountStatus    @default(AVAILABLE)
+  buyerId     String?          // User who purchased the account
+  purchasedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  category AccountCategory @relation(fields: [categoryId], references: [id])
+  buyer    User?           @relation(fields: [buyerId], references: [id])
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([buyerId])
+}
+
+// Enum for account status
+enum AccountStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+}
+
+// SMS verification orders
+model SmsOrder {
+  id           String      @id @default(cuid())
+  userId       String
+  country      String
+  service      String
+  phoneNumber  String?
+  orderId      String?     // External SMS service order ID
+  code         String?     // Verification code
+  status       SmsStatus   @default(PENDING)
+  price        Decimal     @db.Decimal(10, 2)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderId])
+}
+
+// Enum for SMS order status
+enum SmsStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+  EXPIRED
+}
+
+// Social Media Marketing orders
+model SmmOrder {
+  id              String       @id @default(cuid())
+  userId          String
+  serviceId       String       // External SMM service ID
+  targetLink      String       // URL/username for the service
+  quantity        Int
+  price           Decimal      @db.Decimal(10, 2)
+  externalOrderId String?      // External SMM service order ID
+  status          SmmStatus    @default(PENDING)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([externalOrderId])
+}
+
+// Enum for SMM order status
+enum SmmStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  PARTIAL
+}
