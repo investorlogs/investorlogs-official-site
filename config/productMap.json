@@ -1,0 +1,17 @@
+{
+  "_comment": "XclusivePlugs supplier product mapping. Maps our internal account category slugs to the supplier's log category IDs. Find the IDs at https://xclusiveplugs.com/api-docs/logs.",
+  "_example": {
+    "instagram": 12,
+    "facebook": 34,
+    "twitter": 56,
+    "telegram": 78,
+    "tiktok": 90,
+    "youtube": 11
+  },
+  "instagram": 12,
+  "facebook": 34,
+  "twitter": 56,
+  "telegram": 78,
+  "tiktok": 90,
+  "youtube": 11
+}

@@ -1,0 +1,14 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "crons": [
+    {
+      "path": "/api/cron/smm-status",
+      "schedule": "*/5 *"
+    },
+    {
+      "path": "/api/cron/supplier-sync",
+      "schedule": "0 */6 *"
+    }
+  ]
+}

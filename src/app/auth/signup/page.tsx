@@ -51,7 +51,7 @@ export default function SignupPage() {
 
       // Redirect to login page after successful signup
       router.push("/auth/login?signup=success")
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)

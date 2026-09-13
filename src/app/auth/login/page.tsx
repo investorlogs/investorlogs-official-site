@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useEffect } from "react"
+import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -18,16 +18,15 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
-  useEffect(() => {
-    if (searchParams.get("signup") === "success") {
-      setSuccess("Account created successfully! Please sign in.")
-    }
-  }, [searchParams])
+  // Derived from the URL during render — no effect/setState needed.
+  const success =
+    searchParams.get("signup") === "success"
+      ? "Account created successfully! Please sign in."
+      : null
 
   const {
     register,
@@ -54,7 +53,7 @@ function LoginForm() {
         router.push(callbackUrl)
         router.refresh()
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -82,7 +81,7 @@ function LoginForm() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -122,7 +121,7 @@ function LoginForm() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-muted-foreground text-center">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/auth/signup" className="text-primary hover:underline">
               Sign up
             </Link>

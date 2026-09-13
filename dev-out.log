@@ -1,0 +1,675 @@
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.3:3000
+- Environments: .env
+✓ Ready in 910ms
+✓ Running next.config.ts took 122ms
+
+ GET /dashboard/boosting 200 in 1645ms (next.js: 249ms, proxy.ts: 290ms, application-code: 1105ms)
+ GET /api/smm/catalog 200 in 973ms (next.js: 235ms, application-code: 738ms)
+ GET /api/smm/catalog 200 in 21ms (next.js: 5ms, application-code: 16ms)
+ GET /api/smm/active 200 in 1038ms (next.js: 665ms, application-code: 373ms)
+ GET /api/smm/active 200 in 48ms (next.js: 5ms, application-code: 43ms)
+ GET /api/auth/session 200 in 1436ms (next.js: 1411ms, application-code: 25ms)
+ GET /api/auth/session 200 in 60ms (next.js: 17ms, application-code: 43ms)
+ GET /dashboard/sms 200 in 124ms (next.js: 45ms, proxy.ts: 16ms, application-code: 63ms)
+ GET /api/sms/catalog?country=usa 200 in 308ms (next.js: 73ms, application-code: 235ms)
+ GET /api/sms/catalog?country=usa 200 in 20ms (next.js: 5ms, application-code: 15ms)
+ GET /api/sms/active 200 in 350ms (next.js: 153ms, application-code: 197ms)
+ GET /api/sms/active 200 in 45ms (next.js: 3ms, application-code: 42ms)
+ GET /auth/login 200 in 384ms (next.js: 82ms, proxy.ts: 11ms, application-code: 291ms)
+ GET / 200 in 158ms (next.js: 40ms, application-code: 117ms)
+ GET /auth/login 200 in 112ms (next.js: 12ms, proxy.ts: 21ms, application-code: 80ms)
+ GET /auth/signup 200 in 152ms (next.js: 53ms, proxy.ts: 15ms, application-code: 84ms)
+ GET /api/sms/catalog?country=usa 200 in 111ms (next.js: 8ms, application-code: 102ms)
+ GET /api/sms/catalog?country=england 200 in 83ms (next.js: 5ms, application-code: 77ms)
+ GET /api/sms/catalog?country=nigeria 200 in 23ms (next.js: 8ms, application-code: 15ms)
+ GET /api/sms/catalog?country=france 200 in 25ms (next.js: 11ms, application-code: 14ms)
+ GET /api/sms/catalog?country=usa 200 in 85ms (next.js: 12ms, application-code: 73ms)
+ GET /api/sms/catalog?country=canada 200 in 75ms (next.js: 5ms, application-code: 71ms)
+ GET /api/sms/catalog?country=usa 200 in 82ms (next.js: 8ms, application-code: 74ms)
+ GET /api/sms/catalog?country=germany 200 in 83ms (next.js: 8ms, application-code: 75ms)
+ GET /api/sms/catalog?country=france 200 in 76ms (next.js: 6ms, application-code: 70ms)
+ GET /api/sms/catalog?country=usa 200 in 16ms (next.js: 7ms, application-code: 9ms)
+ GET /api/sms/catalog?country=canada 200 in 18ms (next.js: 7ms, application-code: 11ms)
+ GET /api/auth/csrf 200 in 42ms (next.js: 16ms, application-code: 26ms)
+ POST /api/auth/callback/credentials 200 in 284ms (next.js: 9ms, application-code: 276ms)
+ GET /api/auth/session 200 in 47ms (next.js: 8ms, application-code: 38ms)
+ GET /dashboard 200 in 2.1s (next.js: 1631ms, proxy.ts: 12ms, application-code: 481ms)
+ GET /dashboard/sms 200 in 170ms (next.js: 8ms, proxy.ts: 11ms, application-code: 151ms)
+ GET /api/auth/session 200 in 64ms (next.js: 37ms, application-code: 27ms)
+[xclusivePlugs] GET /logs/parent-categories error { error: 'fetch failed' }
+[xclusivePlugs] fetchParentCategories failed { error: 'fetch failed' }
+[xclusivePlugs] GET /logs/categories?per_page=100&page=1 error { error: 'fetch failed' }
+[xclusivePlugs] fetchLogCategories failed { error: 'fetch failed' }
+ GET /api/auth/session 200 in 80ms (next.js: 50ms, application-code: 30ms)
+[xclusivePlugs] GET /logs/categories?per_page=100&page=1 response {
+  status: 200,
+  data: {
+    data: [
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object]
+    ],
+    links: {
+      first: 'https://www.xclusiveplugs.com/api/v1/logs/categories?page=1',
+      last: 'https://www.xclusiveplugs.com/api/v1/logs/categories?page=1',
+      prev: null,
+      next: null
+    },
+    meta: {
+      current_page: 1,
+      from: 1,
+      last_page: 1,
+      links: [Array],
+      path: 'https://www.xclusiveplugs.com/api/v1/logs/categories',
+      per_page: 100,
+      to: 85,
+      total: 85
+    },
+    success: true
+  }
+}
+ GET /api/sms/catalog?country=usa 200 in 77ms (next.js: 9ms, application-code: 68ms)
+[xclusivePlugs] GET /logs/parent-categories response {
+  status: 200,
+  data: {
+    data: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object]
+    ],
+    success: true
+  }
+}
+Xclusive Plugs Items: [
+  {
+    id: 1,
+    name: '🇺🇸PURE USA IP FACEBOOK (98% has Dating feature) ( 200 - 500 FRIENDS) YEAR 2022-2025 Can Create multiple pages',
+    countryCode: 'ip',
+    description: 'format uid|pass|2fa|email|pass email VPN: NEW YORK',
+    platform: 'Facebook',
+    price: 3500,
+    stock: 20
+  },
+  {
+    id: 101,
+    name: '🇮🇩Indonesia Ads Facebook (70 - 400 Friends) Has mail access (2009-2022)',
+    countryCode: 'id',
+    description: 'Set VPN to indonesia',
+    platform: 'Facebook',
+    price: 2800,
+    stock: 23
+  },
+  {
+    id: 51,
+    name: '🇺🇸 Direct USA IP Facebook With Live dollar Marketplace (100 - 300 FRIENDS)(sharp friends) Has Meta Verification button (YEAR 2015-2025)',
+    countryCode: 'ip',
+    description: 'VPN: New York',
+    platform: 'Facebook',
+    price: 4000,
+    stock: 27
+  },
+  {
+    id: 3,
+    name: 'ALREADY CREATED PAGE FACEBOOK ACCOUNTS (0-100 FRIENDS) 2021- 2025. ALL HAVE CREATED PAGES',
+    countryCode: null,
+    description: '2Fa enabled Facebook with already created pages. Paid VPN required (Do not use pia)',
+    platform: 'Facebook',
+    price: 2900,
+    stock: 22
+  },
+  {
+    id: 105,
+    name: 'Random country Facebook (30 - 2k Friends) (2015-2022) Mail + 2fa',
+    countryCode: null,
+    description: 'Has mail access',
+    platform: 'Facebook',
+    price: 3400,
+    stock: 21
+  },
+  {
+    id: 2,
+    name: 'ASIAN BASED FACEBOOK  ACCOUNT. CREATED 2007-2025 ( 40 - 200 FRIENDS )',
+    countryCode: null,
+    description: 'RANDOM COUNTRY FACEBOOK  ACCOUNT CREATED 2007-2025',
+    platform: 'Facebook',
+    price: 2500,
+    stock: 7
+  },
+  {
+    id: 85,
+    name: 'CREATE PAGE FACEBOOK (over 98% can create pages) Random country (2007-2022) | 2FA',
+    countryCode: null,
+    description: 'Login with USA IP address',
+    platform: 'Facebook',
+    price: 4900,
+    stock: 14
+  },
+  {
+    id: 7,
+    name: 'OLD NIGERIAN 🇳🇬 FACEBOOK (100 - 5K FRIENDS )(2007-2024) easy login',
+    countryCode: 'ng',
+    description: 'Do not use VPN on first time login',
+    platform: 'Facebook',
+    price: 2700,
+    stock: 14
+  },
+  {
+    id: 102,
+    name: 'Facebook with OLD POST (2009-2022) (10 -500 FRIENDS) has above 10 old posts. Can create pages',
+    countryCode: null,
+    description: 'Mail access, Opened 2Fa',
+    platform: 'Facebook',
+    price: 4900,
+    stock: 11
+  },
+  {
+    id: 52,
+    name: 'Very Old USA 🇺🇸 Facebook YEAR 2007-2015  (100-5K FRIENDS)(sharp friends)',
+    countryCode: 'us',
+    description: 'VPN New York',
+    platform: 'Facebook',
+    price: 7500,
+    stock: 4
+  },
+  {
+    id: 90,
+    name: '500+ FRIENDS FACEBOOK (Random country) 2009 - 2023 (mail+2fa)',
+    countryCode: null,
+    description: 'Good friends',
+    platform: 'Facebook',
+    price: 3900,
+    stock: 12
+  },
+  {
+    id: 87,
+    name: 'Facebook with 1K - 8K FRIENDS (Random country) Mail access | 2009 - 2021 |',
+    countryCode: null,
+    description: '2FA',
+    platform: 'Facebook',
+    price: 6500,
+    stock: 21
+  },
+  {
+    id: 92,
+    name: 'ADS FACEBOOK (500+ Friends) Has Email Access | 2008 - 2022',
+    countryCode: null,
+    description: 'Real old Facebook, Set VPN location to indonesia',
+    platform: 'Facebook',
+    price: 4000,
+    stock: 16
+  },
+  {
+    id: 111,
+    name: 'Marketplace Facebook with 100 - 200 friends ( this category of accounts has many marketplace post ) the username and password can be changed',
+    countryCode: 'of',
+    description: '2007-2024 ( mail + 2fa )',
+    platform: 'Facebook',
+    price: 5400,
+    stock: 11
+  },
+  {
+    id: 39,
+    name: 'USA 🇺🇸 iCloud Login',
+    countryCode: 'us',
+    description: 'iCloud login',
+    platform: 'iCloud',
+    price: 3500,
+    stock: 11
+  },
+  {
+    id: 72,
+    name: 'USA iCloud🇺🇸 {Number already verified} easy login',
+    countryCode: 'us',
+    description: 'Number already verified',
+    platform: 'iCloud',
+    price: 4500,
+    stock: 0
+  },
+  {
+    id: 42,
+    name: 'Nigerian🇳🇬 iCloud login',
+    countryCode: 'ng',
+    description: 'Login directly from app store or settings',
+    platform: 'iCloud',
+    price: 3500,
+    stock: 0
+  },
+  {
+    id: 59,
+    name: 'USA 🇺🇸 Reddit account [ 1-4 years ] | easy to login |',
+    countryCode: 'to',
+    description: '[ 1-4 years ] | easy to login |',
+    platform: 'Reddit',
+    price: 2000,
+    stock: 18
+  },
+  {
+    id: 60,
+    name: 'USA 🇺🇸 Reddit Accounts Post Karma 50+. [ 2-4 years ] 2FA in the set. Accounts are registered in USA IP addresses |',
+    countryCode: 'in',
+    description: '2FA enabled for easy logkn',
+    platform: 'Reddit',
+    price: 4500,
+    stock: 7
+  },
+  {
+    id: 68,
+    name: 'Very Old Empty X ACCOUNTS (2009-2012) (0-30 Followers) very very old',
+    countryCode: null,
+    description: 'OLD X',
+    platform: 'Twitter/X',
+    price: 1300,
+    stock: 11
+  },
+  {
+    id: 84,
+    name: 'Reddit account (EUROPE IP) [ 3-5years ] | easy to login | | [ 1-4 years ] | easy to login |',
+    countryCode: 'ip',
+    description: 'Created using Europe IP',
+    platform: 'Reddit',
+    price: 1500,
+    stock: 25
+  },
+  {
+    id: 88,
+    name: '🇬🇧 Reddit Accounts | (email included). 2FA in the set. (2023)',
+    countryCode: 'uk',
+    description: 'Mail access',
+    platform: 'Reddit',
+    price: 3000,
+    stock: 10
+  },
+  {
+    id: 107,
+    name: '10 IPS CLIPROXY Recharge Code',
+    countryCode: null,
+    description: 'Create your account on CLIPROXY and refill using the recharge code',
+    platform: 'CLIPROXY',
+    price: 1700,
+    stock: 32
+  },
+  {
+    id: 108,
+    name: '25 IPS CLIPROXY Recharge Code',
+    countryCode: null,
+    description: '25 IPS CLIPROXY Recharge Code',
+    platform: 'CLIPROXY',
+    price: 2900,
+    stock: 7
+  },
+  {
+    id: 109,
+    name: '1 Gb Cliproxy || this lasted for 1 week || but still depends on how you use it | Cheap CLIProxy GB Traffic: High-Speed Residential Bandwidth Optimized for Antidetect Browsers',
+    countryCode: 'gb',
+    description: '1Gb',
+    platform: 'CLIPROXY',
+    price: 3500,
+    stock: 4
+  },
+  {
+    id: 110,
+    name: '5 Gb Cliproxy || this lasted for a Month or more || depends on how you use it | Cheap CLIProxy GB Traffic: High-Speed Residential Bandwidth Optimized for Antidetect Browsers. |',
+    countryCode: 'gb',
+    description: '5GB',
+    platform: 'CLIPROXY',
+    price: 11500,
+    stock: 6
+  },
+  {
+    id: 116,
+    name: '800 - 1900 Real followers tiktok with mail access (random country) (2018-2023)',
+    countryCode: null,
+    description: 'Most has old post',
+    platform: 'TikTok',
+    price: 7000,
+    stock: 0
+  },
+  {
+    id: 11,
+    name: 'OLD X TWITTER 30 - 99 Followers (random aged accounts)',
+    countryCode: null,
+    description: 'OLD X TWITTER 30 - 99 Followers (2013 - 2019)',
+    platform: 'Twitter/X',
+    price: 2500,
+    stock: 9
+  },
+  {
+    id: 13,
+    name: 'OLD X TWITTER 200+  Followers (2013 - 2019)',
+    countryCode: null,
+    description: 'Old x',
+    platform: 'Twitter/X',
+    price: 4000,
+    stock: 3
+  },
+  {
+    id: 12,
+    name: 'AGED X TWITTER 100 - 199 Followers',
+    countryCode: null,
+    description: 'Old x',
+    platform: 'Twitter/X',
+    price: 3500,
+    stock: 10
+  },
+  {
+    id: 14,
+    name: 'OLD X TWITTER 300 - 399 Followers (2013 - 2019)',
+    countryCode: null,
+    description: 'Old X',
+    platform: 'Twitter/X',
+    price: 4900,
+    stock: 5
+  },
+  {
+    id: 16,
+    name: 'OLD X TWITTER 500 - 800 Followers (2013 - 2019)',
+    countryCode: null,
+    description: 'Old x',
+    platform: 'Twitter/X',
+    price: 7500,
+    stock: 0
+  },
+  {
+    id: 98,
+    name: "Blue Tick verified X (200 - 600 Followers) Username can be edited and it won't affect the blue tick verification",
+    countryCode: 'be',
+    description: 'Editable',
+    platform: 'Twitter/X',
+    price: 22000,
+    stock: 0
+  },
+  {
+    id: 112,
+    name: 'Tiktok France 🇫🇷 | 2024–2025 | (0-100 Followers) Verified by email@outlook.com/@hotmail.com.',
+    countryCode: 'by',
+    description: 'Mail access',
+    platform: 'TikTok',
+    price: 1200,
+    stock: 42
+  },
+  {
+    id: 57,
+    name: '10 IPS 9Proxy Recharge Code',
+    countryCode: null,
+    description: 'Create your account on 9Proxy and refill using the recharge code',
+    platform: '9proxy',
+    price: 1700,
+    stock: 34
+  },
+  {
+    id: 65,
+    name: '🇬🇧 UK TikTok Accounts | 2024–2025 | 0–100 random followers | Verified by email@outlook.com/@hotmail.com.',
+    countryCode: 'uk',
+    description: 'Mail access',
+    platform: 'TikTok',
+    price: 1500,
+    stock: 19
+  },
+  {
+    id: 62,
+    name: '25 IPS 9Proxy Recharge Code',
+    countryCode: null,
+    description: '9Proxy Recharge Code',
+    platform: '9proxy',
+    price: 3000,
+    stock: 15
+  },
+  {
+    id: 66,
+    name: 'Tiktok Canada 🇨🇦 | 2024–2025 | (0-100 Followers) Verified by email@outlook.com/@hotmail.com.',
+    countryCode: 'by',
+    description: 'Mail access',
+    platform: 'TikTok',
+    price: 1200,
+    stock: 0
+  },
+  {
+    id: 73,
+    name: 'Tiktok Germany 🇩🇪 | 2024–2025 | (0-100 Followers) Verified by email@outlook.com/@hotmail.com.',
+    countryCode: 'by',
+    description: 'Mail access',
+    platform: 'TikTok',
+    price: 1400,
+    stock: 16
+  },
+  {
+    id: 103,
+    name: '50 IPS 9Proxy Recharge Code | 9Proxy Recharge Code',
+    countryCode: null,
+    description: '9Proxy Recharge Code',
+    platform: '9proxy',
+    price: 6000,
+    stock: 2
+  },
+  {
+    id: 63,
+    name: '1 Gb || this lasted for 1 week || but still depends on how you use it | Cheap 9Proxy GB Traffic: High-Speed Residential Bandwidth Optimized for Antidetect Browsers.',
+    countryCode: 'gb',
+    description: '1 GB',
+    platform: '9proxy',
+    price: 3500,
+    stock: 5
+  },
+  {
+    id: 83,
+    name: '🇺🇸USA TikTok Accounts | 2024–2025 | 0–100 random followers | Verified by email@outlook.com/@hotmail.com',
+    countryCode: 'by',
+    description: 'Mail access',
+    platform: 'TikTok',
+    price: 2500,
+    stock: 23
+  },
+  {
+    id: 64,
+    name: '5 Gb || this lasted for a Month or more || depends on how you use it | Cheap 9Proxy GB Traffic: High-Speed Residential Bandwidth Optimized for Antidetect Browsers.',
+    countryCode: 'gb',
+    description: '5GB',
+    platform: '9proxy',
+    price: 12000,
+    stock: 5
+  },
+  {
+    id: 67,
+    name: 'FOREIGN TIKTOK 🇺🇸🇨🇦🇬🇧🇫🇷🇨🇴🇩🇪[Mail not locked ] 0-100 followers [ VERY STRONG ]Very easy to login',
+    countryCode: 'to',
+    description: 'Mail not locked',
+    platform: 'TikTok',
+    price: 1500,
+    stock: 18
+  },
+  {
+    id: 4,
+    name: 'OLD INSTAGRAM ACCOUNTS (Most has old post) 0-5000 followers (2013-2019)|2fa',
+    countryCode: null,
+    description: 'old Instagram',
+    platform: 'Instagram',
+    price: 3500,
+    stock: 17
+  },
+  {
+    id: 77,
+    name: 'EMPTY INSTAGRAM ACCOUNTS (Aged accounts) may have old post',
+    countryCode: null,
+    description: 'Login with clean ip address',
+    platform: 'Instagram',
+    price: 2500,
+    stock: 12
+  },
+  {
+    id: 55,
+    name: 'HOTMAIL Login',
+    countryCode: null,
+    description: 'Hotmail',
+    platform: 'Hotmail',
+    price: 300,
+    stock: 36
+  },
+  {
+    id: 54,
+    name: 'OUTLOOK Login',
+    countryCode: null,
+    description: 'Login using Microsoft Outlook app',
+    platform: 'Outlook',
+    price: 500,
+    stock: 79
+  },
+  {
+    id: 36,
+    name: 'MALE ACTIVATED FACEBOOK DATING ( YEAR 2009-2024 ) (activated dating)',
+    countryCode: null,
+    description: 'Mail access + 2FA',
+    platform: 'Facebook',
+    price: 18000,
+    stock: 0
+  },
+  {
+    id: 37,
+    name: 'FEMALE ACTIVATED FACEBOOK DATING ( YEAR 2009-2024 ) (activated dating)',
+    countryCode: null,
+    description: 'Mail + 2FA',
+    platform: 'Facebook',
+    price: 18000,
+    stock: 0
+  }
+]
+X-CLUSIVE PLUGS Facebook items count: 16
+X-CLUSIVE PLUGS Facebook item: {
+  id: 1,
+  name: '🇺🇸PURE USA IP FACEBOOK (98% has Dating feature) ( 200 - 500 FRIENDS) YEAR 2022-2025 Can Create multiple pages',
+  price_ngn: 3500,
+  stock: 20,
+  description: 'format uid|pass|2fa|email|pass email VPN: NEW YORK'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 101,
+  name: '🇮🇩Indonesia Ads Facebook (70 - 400 Friends) Has mail access (2009-2022)',
+  price_ngn: 2800,
+  stock: 23,
+  description: 'Set VPN to indonesia'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 51,
+  name: '🇺🇸 Direct USA IP Facebook With Live dollar Marketplace (100 - 300 FRIENDS)(sharp friends) Has Meta Verification button (YEAR 2015-2025)',
+  price_ngn: 4000,
+  stock: 27,
+  description: 'VPN: New York'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 3,
+  name: 'ALREADY CREATED PAGE FACEBOOK ACCOUNTS (0-100 FRIENDS) 2021- 2025. ALL HAVE CREATED PAGES',
+  price_ngn: 2900,
+  stock: 22,
+  description: '2Fa enabled Facebook with already created pages. Paid VPN required (Do not use pia)'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 105,
+  name: 'Random country Facebook (30 - 2k Friends) (2015-2022) Mail + 2fa',
+  price_ngn: 3400,
+  stock: 21,
+  description: 'Has mail access'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 2,
+  name: 'ASIAN BASED FACEBOOK  ACCOUNT. CREATED 2007-2025 ( 40 - 200 FRIENDS )',
+  price_ngn: 2500,
+  stock: 7,
+  description: 'RANDOM COUNTRY FACEBOOK  ACCOUNT CREATED 2007-2025'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 85,
+  name: 'CREATE PAGE FACEBOOK (over 98% can create pages) Random country (2007-2022) | 2FA',
+  price_ngn: 4900,
+  stock: 14,
+  description: 'Login with USA IP address'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 7,
+  name: 'OLD NIGERIAN 🇳🇬 FACEBOOK (100 - 5K FRIENDS )(2007-2024) easy login',
+  price_ngn: 2700,
+  stock: 14,
+  description: 'Do not use VPN on first time login'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 102,
+  name: 'Facebook with OLD POST (2009-2022) (10 -500 FRIENDS) has above 10 old posts. Can create pages',
+  price_ngn: 4900,
+  stock: 11,
+  description: 'Mail access, Opened 2Fa'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 52,
+  name: 'Very Old USA 🇺🇸 Facebook YEAR 2007-2015  (100-5K FRIENDS)(sharp friends)',
+  price_ngn: 7500,
+  stock: 4,
+  description: 'VPN New York'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 90,
+  name: '500+ FRIENDS FACEBOOK (Random country) 2009 - 2023 (mail+2fa)',
+  price_ngn: 3900,
+  stock: 12,
+  description: 'Good friends'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 87,
+  name: 'Facebook with 1K - 8K FRIENDS (Random country) Mail access | 2009 - 2021 |',
+  price_ngn: 6500,
+  stock: 21,
+  description: '2FA'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 92,
+  name: 'ADS FACEBOOK (500+ Friends) Has Email Access | 2008 - 2022',
+  price_ngn: 4000,
+  stock: 16,
+  description: 'Real old Facebook, Set VPN location to indonesia'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 111,
+  name: 'Marketplace Facebook with 100 - 200 friends ( this category of accounts has many marketplace post ) the username and password can be changed',
+  price_ngn: 5400,
+  stock: 11,
+  description: '2007-2024 ( mail + 2fa )'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 36,
+  name: 'MALE ACTIVATED FACEBOOK DATING ( YEAR 2009-2024 ) (activated dating)',
+  price_ngn: 18000,
+  stock: 0,
+  description: 'Mail access + 2FA'
+}
+X-CLUSIVE PLUGS Facebook item: {
+  id: 37,
+  name: 'FEMALE ACTIVATED FACEBOOK DATING ( YEAR 2009-2024 ) (activated dating)',
+  price_ngn: 18000,
+  stock: 0,
+  description: 'Mail + 2FA'
+}
+Total Facebook items rendered: 17
+ GET /dashboard/accounts 200 in 26.5s (next.js: 49ms, proxy.ts: 12ms, application-code: 26.4s)
+ GET /dashboard/wallet 200 in 192ms (next.js: 43ms, proxy.ts: 25ms, application-code: 124ms)
+ GET /api/sms/catalog?country=usa 200 in 19ms (next.js: 5ms, application-code: 14ms)
+ GET /api/sms/catalog?country=philippines 200 in 12ms (next.js: 5ms, application-code: 8ms)
+ GET /api/sms/catalog?country=india 200 in 21ms (next.js: 7ms, application-code: 14ms)
+ GET /api/sms/catalog?country=usa 200 in 15ms (next.js: 7ms, application-code: 8ms)
+ GET /api/sms/catalog?country=england 200 in 71ms (next.js: 6ms, application-code: 65ms)
+ GET /api/sms/catalog?country=germany 200 in 13ms (next.js: 4ms, application-code: 8ms)

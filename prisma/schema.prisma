@@ -18,6 +18,7 @@ model User {
   password      String
   role          UserRole             @default(USER)
   walletBalance Decimal              @default(0) @db.Decimal(10, 2)
+  isBanned      Boolean             @default(false)
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 
@@ -29,6 +30,14 @@ model User {
 
   @@index([email])
   @@index([role])
+}
+
+// Key/value configuration for admin-adjustable settings (markups, etc.)
+model Config {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Enum for user roles
@@ -61,6 +70,15 @@ enum TransactionType {
   DEPOSIT
   PURCHASE
   REFUND
+  // Isolated profit share extracted from an SMS number sale. Never shown to
+  // the customer; used for internal earnings reporting only.
+  SMS_PROFIT
+  // Isolated profit share extracted from an SMM order. Never shown to
+  // the customer; used for internal earnings reporting only.
+  SMM_PROFIT
+  // Isolated profit share extracted from an Accounts purchase. Never shown to
+  // the customer; used for internal earnings reporting only.
+  ACCOUNTS_PROFIT
 }
 
 // Enum for transaction status
@@ -151,6 +169,8 @@ model SmmOrder {
   id              String       @id @default(cuid())
   userId          String
   serviceId       String       // External SMM service ID
+  serviceName     String?      // Display name, e.g. "Instagram Followers"
+  serviceCategory String?      // Display category, e.g. "Instagram"
   targetLink      String       // URL/username for the service
   quantity        Int
   price           Decimal      @db.Decimal(10, 2)

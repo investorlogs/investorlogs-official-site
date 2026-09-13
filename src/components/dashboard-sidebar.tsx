@@ -10,6 +10,7 @@ import {
   TrendingUp, 
   Wallet, 
   History, 
+  PackageOpen,
   HelpCircle,
   LogOut
 } from "lucide-react"
@@ -19,9 +20,10 @@ const navigation = [
   { name: "Dashboard Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Buy Accounts", href: "/dashboard/accounts", icon: ShoppingBag },
   { name: "Get SMS Numbers", href: "/dashboard/sms", icon: MessageSquare },
-  { name: "Social Boosting", href: "/dashboard/smm", icon: TrendingUp },
-  { name: "Wallet & Deposit", href: "/dashboard/wallet", icon: Wallet },
+   { name: "Social Boosting", href: "/dashboard/boosting", icon: TrendingUp },
+  { name: "Deposit", href: "/dashboard/wallet", icon: Wallet },
   { name: "Order History", href: "/dashboard/orders", icon: History },
+  { name: "Purchased Accounts", href: "/dashboard/orders/accounts", icon: PackageOpen },
   { name: "Support", href: "/dashboard/support", icon: HelpCircle },
 ]
 

@@ -132,3 +132,16 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  [data-slot="card-title"] {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+  }
+  [data-slot="card-description"] {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+}
