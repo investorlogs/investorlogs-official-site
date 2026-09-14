@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { isPaymentMock } from "@/lib/paymentProvider"
+import { paymentsEnabled } from "@/lib/paymentProvider"
 
 interface WalletTx {
   id: string
@@ -95,7 +95,7 @@ export function WalletClient({
     }
   }
 
-  const isMock = isPaymentMock()
+  const canDeposit = paymentsEnabled()
 
   return (
     <div className="space-y-6">
@@ -104,7 +104,6 @@ export function WalletClient({
         <p className="text-muted-foreground">
           Deposited funds can only be used to purchase products and services on
           this site.
-          {isMock && " Running in mock mode."}
         </p>
       </div>
 
@@ -118,13 +117,28 @@ export function WalletClient({
         </CardContent>
       </Card>
 
+      {!canDeposit ? (
+        <Card>
+          <CardHeader className="space-y-2">
+            <CardTitle>Deposits are coming soon</CardTitle>
+            <CardDescription>
+              We are still finishing our payment integration. You will be able to
+              top up your wallet here shortly.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Need funds right away? Contact support and we will help you sort it
+              out.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <CardTitle>Add funds</CardTitle>
           <CardDescription>
-            {isMock
-              ? "Mock mode: deposits are confirmed instantly via a simulated checkout."
-              : "Enter an amount and choose a payment method to top up."}
+            Enter an amount and choose a payment method to top up.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -164,13 +178,6 @@ export function WalletClient({
             >
               Card (Paystack)
             </Button>
-            <Button
-              variant={method === "crypto" ? "default" : "outline"}
-              onClick={() => setMethod("crypto")}
-              disabled={busy}
-            >
-              Crypto
-            </Button>
           </div>
 
           <Button
@@ -192,6 +199,7 @@ export function WalletClient({
           </Button>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>

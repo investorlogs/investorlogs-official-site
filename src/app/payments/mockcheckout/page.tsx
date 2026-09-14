@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation"
 import { CreditCard, CheckCircle2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+/**
+ * Simulated checkout for the mock payment provider.
+ *
+ * DEV ONLY. This page credits a wallet without any real payment, so it must
+ * never be reachable in production. The server-side guard below mirrors the
+ * one in /api/payments/mock-confirm; both exist so neither can be relied on
+ * alone as the only barrier.
+ */
+const IS_PRODUCTION = process.env.NODE_ENV === "production"
+
 export default function MockCheckoutPage({
   searchParams,
 }: {
@@ -17,6 +27,7 @@ export default function MockCheckoutPage({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (IS_PRODUCTION) return
     void searchParams
       .then((params) => {
         const r = params.ref ?? null
@@ -63,6 +74,23 @@ export default function MockCheckoutPage({
       clearTimeout(timer)
     }
   }, [ref, step, router])
+
+  if (IS_PRODUCTION) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/30">
+        <div className="w-full max-w-md space-y-4 p-8 text-center">
+          <XCircle className="mx-auto h-8 w-8 text-destructive" />
+          <h1 className="text-xl font-semibold">Not available</h1>
+          <p className="text-sm text-muted-foreground">
+            This page does not exist.
+          </p>
+          <Button variant="outline" onClick={() => router.push("/dashboard/wallet")}>
+            Back to wallet
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30">

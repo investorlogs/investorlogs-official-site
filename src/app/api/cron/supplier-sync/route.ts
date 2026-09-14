@@ -4,7 +4,6 @@ import {
   isXclusivePlugsConfigured,
 } from "@/lib/xclusivePlugs"
 import { prisma } from "@/lib/prisma"
-import { Prisma } from "@/generated/prisma/client"
 import { readFileSync } from "fs"
 import { resolve } from "path"
 
@@ -34,12 +33,19 @@ export async function GET(request: Request) {
     )
   }
 
-  const result = {
+  const result: {
+    success: boolean
+    synced: number
+    errors: string[]
+    skipped: number
+    /** Supplier-reported stock per slug. Informational only — nothing is stocked locally. */
+    availableQuantity: Record<string, number>
+  } = {
     success: true,
     synced: 0,
-    created: 0,
-    errors: [] as string[],
+    errors: [],
     skipped: 0,
+    availableQuantity: {},
   }
 
   let productMap: Record<string, number> = {}
@@ -51,13 +57,19 @@ export async function GET(request: Request) {
     result.errors.push("config/productMap.json is missing or invalid.")
   }
 
-  const slugs = Object.keys(productMap)
+  const slugs = Object.keys(productMap).filter((slug) => !slug.startsWith("_"))
   if (slugs.length === 0) {
-    result.errors.push("config/productMap.json is empty.")
+    result.errors.push("config/productMap.json has no product slugs configured.")
   }
 
   for (const slug of slugs) {
     const productId = productMap[slug]
+    if (typeof productId !== "number" || !Number.isFinite(productId)) {
+      result.skipped++
+      result.errors.push(`Slug "${slug}" has a non-numeric product id and was skipped.`)
+      continue
+    }
+
     try {
       const supplierCategory = await fetchLogCategory(productId)
       if (!supplierCategory) {
@@ -66,35 +78,25 @@ export async function GET(request: Request) {
         continue
       }
 
-      const price = Number(supplierCategory.price) || 0
       const availableQty = Number(supplierCategory.available_quantity) || 0
       const name = supplierCategory.name ?? slug
       const description = supplierCategory.description ?? null
 
-      const existing = await prisma.accountCategory.upsert({
+      await prisma.accountCategory.upsert({
         where: { slug },
         update: { name, description, updatedAt: new Date() },
         create: { slug, name, description },
       })
 
-      const currentStock = await prisma.digitalAccount.count({
-        where: { categoryId: existing.id, status: "AVAILABLE" },
-      })
-
-      if (currentStock < availableQty) {
-        const deficit = availableQty - currentStock
-        const baseTitle = `${name} Account`
-        await prisma.digitalAccount.createMany({
-          data: Array.from({ length: deficit }, (_, index) => ({
-            categoryId: existing.id,
-            title: `${baseTitle} #${String(index + 1).padStart(3, "0")}`,
-            price: new Prisma.Decimal(price.toFixed(2)),
-            credentials: `supplier-${productId}-placeholder-${crypto.randomUUID()}`,
-            status: "AVAILABLE",
-          })),
-        })
-        result.created += deficit
-      }
+      // NOTE: this sync only mirrors categories. It deliberately does NOT
+      // fabricate DigitalAccount rows: doing so put unresellable placeholder
+      // stock in front of customers and, because the purchase route prices a
+      // basket from these rows, it also mispriced orders (the supplier price is
+      // per log, not per fabricated row). Real inventory is created at purchase
+      // time from the supplier's actual delivered logs.
+      //
+      // `available_quantity` is therefore reported for visibility only.
+      result.availableQuantity[slug] = availableQty
 
       result.synced++
     } catch (error) {

@@ -77,10 +77,37 @@ node -e "const c=require('crypto');console.log('NEXTAUTH_SECRET='+c.randomBytes(
 | `PAYMENT_PROVIDER_MOCK` | `false` |
 
 ### Variables that must NOT be set in production
-
 - `MOCK_WEBHOOK_SECRET` — leave it unset. The mock payment path is disabled in
   production on purpose; setting it would re-open a forged-webhook hole.
 - Any `*_MOCK=true` flag other than for a deliberate staging environment.
+
+---
+
+## 2b. Launching before payments are ready (current plan)
+
+Deposits are gated behind `PAYMENTS_ENABLED`. **Leave it unset** for the first
+launch. While it is off:
+
+| Surface | Behaviour |
+|---|---|
+| `/dashboard/wallet` | Shows "Deposits are coming soon" instead of the form |
+| `POST /api/payments/initialize` | `503 { code: "DEPOSITS_DISABLED" }` |
+| `POST /api/payments/mock-confirm` | `404` (disabled in production) |
+| `/payments/mockcheckout` | Renders a "Not available" page |
+
+This is deliberate: the current deposit flow marks a transaction `COMPLETED`
+without crediting `walletBalance`, so anyone who paid would lose their money.
+The gate makes that impossible.
+
+**Do not set `PAYMENTS_ENABLED=true` until all three are done:**
+
+1. The callback verifies the payment with Paystack (`/transaction/verify/:ref`)
+   instead of blindly setting `COMPLETED`.
+2. The callback checks `tx.userId === session.user.id` (today it does not).
+3. Both the webhook and the callback credit `walletBalance`, idempotently.
+
+Everything else on the site (accounts, SMS, boosting, orders, signup, login) is
+unaffected by the gate and is safe to run live.
 
 ---
 
@@ -129,6 +156,7 @@ These were fixed so a clean cloud build works:
 - [ ] All `*_MOCK` flags set to `false`.
 - [ ] Paystack switched from test to **live** keys.
 - [ ] `MOCK_WEBHOOK_SECRET` is **not** set.
+- [ ] `PAYMENTS_ENABLED` is **not** set (until the deposit flow is fixed).
 - [ ] Neon backups/PITR enabled for your plan.
 - [ ] Test a real ₦1 SMS order and a real deposit end to end.
 

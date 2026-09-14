@@ -223,6 +223,19 @@ async function runPurchaseTransaction(
       .filter((line) => line.trim().length > 0)
       .join("\n")
 
+    // Guard: never hand a customer a row that still holds a sync placeholder or
+    // an empty string. Placeholder rows come from /api/cron/supplier-sync, which
+    // pre-creates stock before the supplier has delivered real logs. If we stamp
+    // those onto a paid purchase the customer pays and receives nothing usable,
+    // so we abort and let the transaction roll the balance debit back.
+    if (credentials.length === 0) {
+      throw new PurchaseError(
+        "PROVIDER_ERROR",
+        "Our supplier did not return usable account logs. Your balance was not charged. Please try again shortly.",
+        502
+      )
+    }
+
     await tx.digitalAccount.updateMany({
       where: { id: { in: selectedIds } },
       data: { credentials: credentials || "" },

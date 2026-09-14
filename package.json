@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:deploy": "prisma migrate deploy",
+    "make:admin": "node scripts/make-admin.mjs",
     "//postinstall": "Generate the Prisma client so a clean checkout (e.g. Vercel, where src/generated is gitignored) can build. skills sync is optional and must never fail the install.",
     "postinstall": "prisma generate && (prisma skills sync || exit 0)"
   },

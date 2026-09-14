@@ -22,6 +22,13 @@ const mockConfirmSchema = z.object({
  * HMAC verification instead.
  */
 export async function POST(request: NextRequest) {
+  // The mock provider only exists so local development works without a
+  // gateway. In production it must be dead: this endpoint credits a wallet on
+  // request, so leaving it reachable would hand out free balance.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   try {
     const session = await getSession()
 

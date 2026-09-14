@@ -119,6 +119,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-float: float 5s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+  --animate-data-travel: data-travel 4s ease-in-out infinite;
 }
 
 @layer base {
@@ -143,5 +146,48 @@
     overflow-wrap: break-word;
     word-break: break-word;
     white-space: pre-wrap;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px 4px rgba(99, 102, 245, 0.45), 0 10px 25px -5px rgba(99, 102, 245, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 22px 8px rgba(99, 102, 245, 0.65), 0 10px 30px -5px rgba(99, 102, 245, 0.4);
+  }
+}
+
+@keyframes data-travel {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.2;
+  }
+}
+
+@keyframes node-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    r: 2.5;
+  }
+  50% {
+    opacity: 0.9;
+    r: 3.5;
   }
 }

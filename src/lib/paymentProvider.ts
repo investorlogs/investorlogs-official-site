@@ -67,6 +67,20 @@ export function isPaymentMock(): boolean {
   return !PAYSTACK_SECRET && !CRYPTO_SECRET && process.env.NODE_ENV !== "production"
 }
 
+/**
+ * Master switch for customer-facing deposits.
+ *
+ * Defaults to OFF. Until real deposits are wired end to end (gateway
+ * verification + wallet crediting on both the webhook and the callback path),
+ * leaving this off keeps the deposit UI and API out of the live site so a
+ * customer can never pay without being credited.
+ *
+ * Set PAYMENTS_ENABLED="true" only once the deposit flow is verified.
+ */
+export function paymentsEnabled(): boolean {
+  return process.env.PAYMENTS_ENABLED === "true"
+}
+
 export function isPaymentProviderConfigured(): boolean {
   return isPaymentMock() || Boolean(PAYSTACK_SECRET) || Boolean(CRYPTO_SECRET)
 }

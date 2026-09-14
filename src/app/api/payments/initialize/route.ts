@@ -3,7 +3,12 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
 import { getSession } from "@/lib/session"
-import { PaymentProviderError, initializePayment, isPaymentProviderConfigured } from "@/lib/paymentProvider"
+import {
+  PaymentProviderError,
+  initializePayment,
+  isPaymentProviderConfigured,
+  paymentsEnabled,
+} from "@/lib/paymentProvider"
 import { paymentInitializeSchema } from "@/lib/validations/payments"
 
 export const dynamic = "force-dynamic"
@@ -19,6 +24,19 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Deposits are gated behind PAYMENTS_ENABLED until the full flow (gateway
+    // verification + wallet crediting) is live. Refusing here means a customer
+    // can never reach a checkout that would take money we cannot credit.
+    if (!paymentsEnabled()) {
+      return NextResponse.json(
+        {
+          error: "Deposits are not available yet. Please check back soon.",
+          code: "DEPOSITS_DISABLED",
+        },
+        { status: 503 }
+      )
     }
 
     const userId = session.user.id
