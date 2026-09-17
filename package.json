@@ -2,6 +2,7 @@
   "name": "investorlogs-official-site",
   "version": "0.1.0",
   "private": true,
+  // Force fresh Vercel deployment — framework detection fix
   "scripts": {
     "dev": "next dev",
     "build": "next build",
