@@ -132,6 +132,7 @@ function LoginForm() {
               Sign up
             </Link>
           </div>
+        </CardFooter>
       </Card>
     </div>
   )
