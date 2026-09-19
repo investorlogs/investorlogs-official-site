@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
 
+// Force fresh Vercel build so the "Forgot your password?" link is live.
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -131,7 +132,6 @@ function LoginForm() {
               Sign up
             </Link>
           </div>
-        </CardFooter>
       </Card>
     </div>
   )
