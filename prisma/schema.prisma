@@ -27,6 +27,7 @@ model User {
   digitalAccounts    DigitalAccount[]
   smsOrders          SmsOrder[]
   smmOrders          SmmOrder[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@index([role])
@@ -173,7 +174,7 @@ model SmmOrder {
   serviceCategory String?      // Display category, e.g. "Instagram"
   targetLink      String       // URL/username for the service
   quantity        Int
-  price           Decimal      @db.Decimal(10, 2)
+  price           Decimal     @db.Decimal(10, 2)
   externalOrderId String?      // External SMM service order ID
   status          SmmStatus    @default(PENDING)
   createdAt       DateTime     @default(now())
@@ -185,6 +186,22 @@ model SmmOrder {
   @@index([userId])
   @@index([status])
   @@index([externalOrderId])
+}
+
+// Password reset tokens (single-use, expire after 1 hour)
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // Enum for SMM order status
