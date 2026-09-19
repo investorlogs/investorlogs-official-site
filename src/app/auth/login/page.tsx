@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
+// Force clean Vercel rebuild so forgot-password link renders.
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
 
 // Force fresh Vercel build so the "Forgot your password?" link is live.
