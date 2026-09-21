@@ -94,7 +94,7 @@ export function CareChat() {
               <Bot className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">InvestorLogs Assistant</CardTitle>
+              <CardTitle className="text-base">InvestorPlugX Assistant</CardTitle>
               <p className="text-xs text-muted-foreground">
                 {offline ? "Offline" : "Online — here to help"}
               </p>

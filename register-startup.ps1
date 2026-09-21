@@ -1,14 +1,14 @@
-# Registers the InvestorLogs site to start automatically when Windows boots.
+# Registers the InvestorPlugX site to start automatically when Windows boots.
 #
 # Run this ONCE from an elevated (Administrator) PowerShell:
 #     powershell -ExecutionPolicy Bypass -File .\register-startup.ps1
 #
 # To remove the startup task later:
-#     Unregister-ScheduledTask -TaskName "InvestorLogsSite" -Confirm:$false
+#     Unregister-ScheduledTask -TaskName "InvestorPlugXSite" -Confirm:$false
 
 $ErrorActionPreference = "Stop"
 
-$taskName = "InvestorLogsSite"
+$taskName = "InvestorPlugXSite"
 $projectDir = $PSScriptRoot
 $startScript = Join-Path $projectDir "start-site.bat"
 
@@ -48,3 +48,4 @@ Register-ScheduledTask `
 
 Write-Host "Done. The site will start automatically on boot." -ForegroundColor Green
 Write-Host "Start it now with:  Start-ScheduledTask -TaskName $taskName"
+

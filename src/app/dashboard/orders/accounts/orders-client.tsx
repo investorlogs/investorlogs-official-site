@@ -107,7 +107,7 @@ export function PurchasedOrders({ orders }: { orders: PurchasedAccount[] }) {
           `=== ${order.title} (${order.categoryName}) ===\n${order.credentials}`
       )
       .join("\n\n")
-    downloadText("investorlogs-purchased-accounts.txt", content)
+    downloadText("investorplugx-purchased-accounts.txt", content)
   }
 
   if (orders.length === 0) {
@@ -231,4 +231,5 @@ export function PurchasedOrders({ orders }: { orders: PurchasedAccount[] }) {
     </Card>
   )
 }
+
 

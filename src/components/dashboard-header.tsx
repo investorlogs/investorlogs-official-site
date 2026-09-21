@@ -25,7 +25,7 @@ export function DashboardHeader() {
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">IL</span>
             </div>
-            <h1 className="text-lg font-semibold">InvestorLogs</h1>
+            <h1 className="text-lg font-semibold">InvestorPlugX</h1>
           </div>
         </div>
 

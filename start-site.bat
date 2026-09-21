@@ -1,6 +1,6 @@
 @echo off
 REM ---------------------------------------------------------------------------
-REM Starts the InvestorLogs site under PM2.
+REM Starts the InvestorPlugX site under PM2.
 REM
 REM Run this once manually to launch the site, and register it as a Windows
 REM startup task (see register-startup.ps1) so it comes back after a reboot.
@@ -34,7 +34,9 @@ if errorlevel 1 (
 call npx pm2 save
 
 echo.
-echo InvestorLogs is running at http://localhost:3000
-echo   Logs:    npx pm2 logs investorlogs
-echo   Restart: npx pm2 restart investorlogs
+echo InvestorPlugX is running at http://localhost:3000
+echo   Logs:    npx pm2 logs investorplugx
+echo   Restart: npx pm2 restart investorplugx
 echo   Status:  npx pm2 status
+
+

@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Set a new password</CardTitle>
           <CardDescription>
-            Choose a strong password for your InvestorLogs account.
+            Choose a strong password for your InvestorPlugX account.
           </CardDescription>
         </CardHeader>
         <CardContent>

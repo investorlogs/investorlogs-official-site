@@ -68,7 +68,7 @@ function LoginForm() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>
-            Sign in to your InvestorLogs account
+            Sign in to your InvestorPlugX account
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InvestorLogs - Digital Asset Marketplace",
+  title: "InvestorPlugX - Digital Asset Marketplace",
   description: "Digital Asset Marketplace & Utility Platform - Buy and sell digital accounts, SMS verification services, and social media marketing services",
   other: {
     charset: "utf-8",
@@ -36,3 +36,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

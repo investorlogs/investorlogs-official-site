@@ -11,7 +11,7 @@ import { randomBytes, createHash } from "node:crypto"
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY?.trim()
-const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL?.trim() ?? "noreply@investorlogs.com"
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL?.trim() ?? "noreply@investorplugx.com"
 const NEXTAUTH_URL = (process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/\/+$/, "")
 
 export type SendResult = { ok: true } | { ok: false; error: string }
@@ -81,14 +81,14 @@ export function buildPasswordResetEmail(params: {
     timeZoneName: "short",
   })
 
-  const subject = "Reset your InvestorLogs password"
+  const subject = "Reset your InvestorPlugX password"
   const html = `<!DOCTYPE html>
 <html lang="en">
   <body style="font-family: system-ui, Arial, sans-serif; background: #0B0F19; color: #e2e8f0; padding: 24px;">
     <div style="max-width: 480px; margin: 0 auto; background: #111827; border-radius: 12px; padding: 32px; border: 1px solid #1f2937;">
       <h1 style="font-size: 20px; margin: 0 0 16px;">Reset your password</h1>
       <p style="color: #94a3b8; margin: 0 0 24px;">
-        Hi ${params.name}, someone requested a password reset for your InvestorLogs account.
+        Hi ${params.name}, someone requested a password reset for your InvestorPlugX account.
         Click the button below to choose a new password.
       </p>
       <a href="${params.resetLink}" style="display: inline-block; background: #6366f1; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
@@ -101,11 +101,11 @@ export function buildPasswordResetEmail(params: {
   </body>
 </html>`
 
-  const text = `Reset your InvestorLogs password
+  const text = `Reset your InvestorPlugX password
 
 Hi ${params.name},
 
-Someone requested a password reset for your InvestorLogs account.
+Someone requested a password reset for your InvestorPlugX account.
 Visit this link to choose a new password: ${params.resetLink}
 
 This link expires at ${formatted}.
@@ -113,3 +113,4 @@ If you did not request a reset, you can safely ignore this email.`
 
   return { subject, html, text }
 }
+

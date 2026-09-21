@@ -64,7 +64,7 @@ export default function SignupPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>
-            Sign up to start using InvestorLogs
+            Sign up to start using InvestorPlugX
           </CardDescription>
         </CardHeader>
         <CardContent>

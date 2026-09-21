@@ -75,9 +75,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown reference" }, { status: 404 })
   }
 
-  await prisma.walletTransaction.update({
-    where: { reference },
-    data: { status },
+  if (existing.status !== "PENDING") {
+    // Idempotent: re-processing an already-settled deposit is a no-op.
+    return NextResponse.json({ received: true })
+  }
+
+  // Update the transaction status. A successful deposit also credits the
+  // user's walletBalance — otherwise the customer pays but never sees the
+  // funds, which is the exact failure this webhook exists to prevent.
+  await prisma.$transaction(async (tx) => {
+    await tx.walletTransaction.update({
+      where: { reference },
+      data: { status },
+    })
+
+    if (status === "COMPLETED" && existing.type === "DEPOSIT") {
+      await tx.user.update({
+        where: { id: existing.userId },
+        data: {
+          walletBalance: {
+            increment: existing.amount.toDecimalPlaces(2),
+          },
+        },
+      })
+    }
   })
 
   return NextResponse.json({ received: true })

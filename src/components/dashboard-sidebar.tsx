@@ -37,7 +37,7 @@ export function DashboardSidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">InvestorLogs</h1>
+        <h1 className="text-xl font-bold">InvestorPlugX</h1>
       </div>
       
       <nav className="flex-1 space-y-1 px-3 py-4">

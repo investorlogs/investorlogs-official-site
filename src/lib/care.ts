@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
  */
 export const CARE_KB = {
   site: {
-    name: "InvestorLogs",
+    name: "InvestorPlugX",
     url: process.env.NEXTAUTH_URL ?? "https://investorplugx.com",
   },
   accounts: {
@@ -58,7 +58,7 @@ export type CareContext = {
  * anything outside its scope (fraud, legal, account compromise).
  */
 export function buildCareSystemPrompt(ctx: CareContext): string {
-  return `You are the InvestorLogs customer care assistant. You help customers solve problems on their own.
+  return `You are the InvestorPlugX customer care assistant. You help customers solve problems on their own.
 
 ## Rules
 - Answer ONLY from the knowledge base below. Never invent prices, policies, or features.

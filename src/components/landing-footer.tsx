@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useState } from "react"
 import {
   RiDiscordFill,
@@ -74,6 +75,33 @@ export function LandingFooter({ initialSmsSent, initialAccountsReady }: LandingF
 
   return (
     <footer className="relative z-10 flex w-full flex-col items-center justify-between gap-6 border-t border-slate-800/50 px-6 py-6 sm:flex-row">
+      <div className="flex flex-wrap items-center justify-center gap-3 gap-x-5 sm:justify-start">
+        <Link
+          href="/refund-policy"
+          className="text-sm text-slate-400 transition-colors hover:text-slate-200"
+        >
+          Refund Policy
+        </Link>
+        <Link
+          href="/privacy-policy"
+          className="text-sm text-slate-400 transition-colors hover:text-slate-200"
+        >
+          Privacy Policy
+        </Link>
+        <Link
+          href="/terms-of-service"
+          className="text-sm text-slate-400 transition-colors hover:text-slate-200"
+        >
+          Terms of Service
+        </Link>
+        <Link
+          href="/dashboard/support"
+          className="text-sm text-slate-400 transition-colors hover:text-slate-200"
+        >
+          Support
+        </Link>
+      </div>
+
       <div className="flex items-center justify-center sm:justify-start">
         <RiDiscordFill
           className="h-6 w-6 text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,245,0.5)]"

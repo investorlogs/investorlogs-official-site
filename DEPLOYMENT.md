@@ -1,4 +1,4 @@
-# Deploying InvestorLogs to Vercel + Neon
+# Deploying InvestorPlugX to Vercel + Neon
 
 This app is a Next.js 16 server-rendered site with PostgreSQL via Prisma. The
 recommended cloud setup is **Vercel** (hosting) + **Neon** (managed Postgres).
@@ -59,7 +59,7 @@ node -e "const c=require('crypto');console.log('NEXTAUTH_SECRET='+c.randomBytes(
 | Variable | Value |
 |---|---|
 | `DATABASE_URL` | Neon **pooled** connection string |
-| `NEXTAUTH_URL` | Your real URL, e.g. `https://investorlogs.com` — **no trailing slash** |
+| `NEXTAUTH_URL` | Your real URL, e.g. `https://investorplugx.com` — **no trailing slash** |
 | `NEXTAUTH_SECRET` | Freshly generated |
 | `CRON_SECRET` | Freshly generated |
 | `XCLUSIVE_PLUGS_API_URL` | `https://xclusiveplugs.com/api/v1` |
@@ -166,3 +166,5 @@ These were fixed so a clean cloud build works:
 
 `npm run dev` still works locally. The mock providers activate automatically
 outside production, so you do not need live API keys to develop.
+
+

@@ -14,7 +14,7 @@ export default async function DashboardPage() {
         <h2 className="text-3xl font-bold tracking-tight">
           {user?.name ? `Welcome back, ${user.name}` : "Dashboard"}
         </h2>
-        <p className="text-muted-foreground">Welcome to InvestorLogs digital asset marketplace</p>
+        <p className="text-muted-foreground">Welcome to InvestorPlugX digital asset marketplace</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

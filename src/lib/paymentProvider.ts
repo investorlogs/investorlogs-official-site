@@ -153,7 +153,7 @@ async function paystackInitialize(
       channels: ["card", "bank_transfer", "ussd"],
       reference,
       callback_url: `${NEXTAUTH_URL}/api/payments/callback`,
-      metadata: { userId, source: "investorlogs-wallet" },
+      metadata: { userId, source: "investorplugx-wallet" },
     }),
     cache: "no-store",
   })
@@ -248,3 +248,4 @@ export function mockWebhookSignature(rawBody: string): string {
   }
   return createHmac("sha256", MOCK_WEBHOOK_SECRET).update(rawBody).digest("hex")
 }
+

@@ -1,21 +1,21 @@
-// PM2 process definition for the InvestorLogs production server.
+// PM2 process definition for the InvestorPlugX production server.
 //
 // Usage:
 //   pm2 start ecosystem.config.cjs     # start (or reload) the site
-//   pm2 logs investorlogs              # tail logs
-//   pm2 restart investorlogs           # restart after a code change
-//   pm2 stop investorlogs              # stop
+//   pm2 logs investorplugx              # tail logs
+//   pm2 restart investorplugx           # restart after a code change
+//   pm2 stop investorplugx              # stop
 //
 // After `pm2 start`, run `pm2 save` so the process list survives a reboot.
 //
 // This runs the production server (`next start`), so run `npm run build`
-// first (or `npm run build && pm2 restart investorlogs`) whenever the code
+// first (or `npm run build && pm2 restart investorplugx`) whenever the code
 // changes. `npm run dev` should NOT be used here — it is a developer server
 // with hot reloading and is not meant to stay running.
 module.exports = {
   apps: [
     {
-      name: "investorlogs",
+      name: "investorplugx",
       // Invoke Next directly through node. Using `npm run start` would add an
       // extra shell layer that PM2 cannot reliably restart or signal.
       script: "node_modules/next/dist/bin/next",
@@ -42,3 +42,5 @@ module.exports = {
     },
   ],
 }
+
+
