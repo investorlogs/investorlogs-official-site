@@ -1,11 +1,5 @@
 import Link from "next/link"
 
-function DataNode() {
-  return (
-    <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-indigo-400 to-amber-400 shadow-[0_0_10px_rgba(99,102,245,0.5)] ring-2 ring-indigo-400/30 animate-pulse-glow sm:h-8 sm:w-8" aria-hidden="true" />
-  )
-}
-
 function TitleArrow() {
   return (
     <svg
@@ -74,19 +68,7 @@ export function LandingHero() {
     <section className="relative flex w-full flex-col items-center justify-center gap-12 pt-28 text-center">
       <h1 className="relative flex items-center justify-center gap-0 text-5xl font-black sm:text-6xl md:text-7xl lg:text-8xl">
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          Invest
-        </span>
-        <DataNode />
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          or
-        </span>
-        <DataNode />
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          Plug
-        </span>
-        <DataNode />
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          X
+          InvestorPlugX
         </span>
         <TitleConnection />
         <TitleArrow />
