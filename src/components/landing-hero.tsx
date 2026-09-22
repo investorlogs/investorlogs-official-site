@@ -78,11 +78,15 @@ export function LandingHero() {
         </span>
         <DataNode />
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          rL
+          or
         </span>
         <DataNode />
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
-          gs
+          Plug
+        </span>
+        <DataNode />
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
+          X
         </span>
         <TitleConnection />
         <TitleArrow />
