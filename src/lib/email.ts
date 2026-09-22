@@ -75,11 +75,12 @@ export function buildPasswordResetEmail(params: {
   resetLink: string
   expiresAt: Date
 }) {
-  const formatted = params.expiresAt.toLocaleString("en-US", {
-    dateStyle: "long",
-    timeStyle: "short",
-    timeZoneName: "short",
-  })
+  // Use a simple, widely-compatible format. toLocaleString with dateStyle/
+  // timeZoneName can throw on some Node versions, and this function must never
+  // crash the forgot-password flow.
+  const formatted = Number.isFinite(params.expiresAt.getTime())
+    ? params.expiresAt.toISOString().replace("T", " ").slice(0, 16) + " UTC"
+    : "1 hour from now"
 
   const subject = "Reset your InvestorPlugX password"
   const html = `<!DOCTYPE html>
