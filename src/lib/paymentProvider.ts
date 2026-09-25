@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
+import { assertNoMockProvidersInProduction } from "@/lib/assertProductionEnv"
+import { koboToNaira, normalizeProviderStatus } from "@/lib/deposit-settlement"
 
 /**
  * Payment gateway integration (Phase 5).
@@ -62,6 +64,7 @@ export interface PaymentVerification {
 export { MOCK_WEBHOOK_SECRET, PAYSTACK_WEBHOOK_SECRET }
 
 export function isPaymentMock(): boolean {
+  assertNoMockProvidersInProduction()
   if (process.env.PAYMENT_PROVIDER_MOCK === "true") return true
   if (process.env.PAYMENT_PROVIDER_MOCK === "false") return false
   return !PAYSTACK_SECRET && !CRYPTO_SECRET && process.env.NODE_ENV !== "production"
@@ -182,6 +185,90 @@ async function paystackInitialize(
     reference,
     authorizationUrl: payload.data.authorization_url,
     provider: "card_paystack",
+  }
+}
+
+/**
+ * Verifies a transaction directly with Paystack.
+ *
+ * Used by the post-checkout callback, which is a browser redirect and therefore
+ * cannot be trusted on its own: a customer can hand-edit the `reference` in the
+ * URL, or visit it with a reference they never paid for. Only the gateway can
+ * say whether the money actually arrived.
+ */
+export async function verifyPaystackPayment(
+  reference: string
+): Promise<PaymentVerification> {
+  // With the mock provider there is no gateway to ask, so this must fail loudly
+  // rather than return a fabricated success. Mock settlement goes through
+  // /api/payments/mock-confirm, which is disabled in production.
+  if (isPaymentMock()) {
+    throw new PaymentProviderError(
+      "NOT_CONFIGURED",
+      "Cannot verify a payment while the mock provider is active.",
+      503
+    )
+  }
+
+  if (!PAYSTACK_SECRET) {
+    throw new PaymentProviderError(
+      "NOT_CONFIGURED",
+      "Paystack is not configured. Set PAYSTACK_SECRET_KEY in your environment.",
+      503
+    )
+  }
+
+  let response: Response
+  try {
+    response = await fetch(
+      `${PAYSTACK_BASE}/payment/verify/${encodeURIComponent(reference)}`,
+      {
+        headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+        cache: "no-store",
+      }
+    )
+  } catch {
+    throw new PaymentProviderError(
+      "NETWORK_ERROR",
+      "Could not reach Paystack to verify the payment.",
+      502
+    )
+  }
+
+  // Paystack answers 404 for a reference it does not recognise.
+  if (response.status === 404) {
+    return { reference, status: "failed", amount: 0 }
+  }
+
+  if (!response.ok) {
+    throw new PaymentProviderError(
+      "PROVIDER_ERROR",
+      `Paystack verification failed (HTTP ${response.status}).`,
+      502
+    )
+  }
+
+  const payload = (await response.json().catch(() => null)) as {
+    status?: boolean
+    data?: { reference?: string; status?: string; amount?: number }
+  } | null
+
+  const data = payload?.data
+  if (!payload?.status || !data) {
+    throw new PaymentProviderError(
+      "PROVIDER_ERROR",
+      "Paystack returned an unexpected verification response.",
+      502
+    )
+  }
+
+  return {
+    reference: data.reference ?? reference,
+    // Reuse the shared normaliser so the webhook and the callback can never
+    // disagree about what "success" means.
+    status: normalizeProviderStatus(data.status),
+    // Paystack reports kobo; the wallet stores naira.
+    amount: koboToNaira(data.amount) ?? 0,
   }
 }
 

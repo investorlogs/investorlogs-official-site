@@ -1,4 +1,6 @@
-import { SMM_PLATFORMS, SMM_POLL_INTERVAL_MS, type SmmService } from "@/lib/smm-catalog"
+import { SMM_POLL_INTERVAL_MS, SMM_PLATFORMS, SMM_PROVIDER_PRICE_CURRENCY, type SmmService } from "@/lib/smm-catalog"
+import { normalizeSmmCatalog } from "@/lib/smm-provider-catalog"
+import { assertNoMockProvidersInProduction } from "@/lib/assertProductionEnv"
 
 /**
  * SMM provider integration layer (Phase 4).
@@ -64,6 +66,7 @@ const REQUEST_TIMEOUT_MS = 15_000
 const MOCK_SMM_DELAY_MS = Number(process.env.SMM_PROVIDER_MOCK_DELAY_MS ?? 5000)
 
 export function isSmmMockProvider(): boolean {
+  assertNoMockProvidersInProduction()
   if (process.env.SMM_PROVIDER_MOCK === "true") return true
   if (process.env.SMM_PROVIDER_MOCK === "false") return false
   return !API_KEY && process.env.NODE_ENV !== "production"
@@ -103,10 +106,15 @@ const mockGlobal = globalThis as unknown as {
 }
 const mockSmmOrders = (mockGlobal.__smmMockOrders ??= new Map<string, MockSmmOrder>())
 
+/** A mock catalog row before the provider-contract defaults are applied. */
+type MockSmmServiceSeed = Omit<SmmService, "providerType" | "orderMode" | "supportsRefill" | "supportsCancel">
+
 // Rates are the provider cost per 1,000 units, quoted in NGN. These mirror the
 // real (Really Simple Social) provider's per-1k pricing so the mock is a
-// faithful stand-in for end-to-end testing.
-const MOCK_SMM_SERVICES: SmmService[] = [
+// faithful stand-in for end-to-end testing. Every seed is a standard, refillable
+// product, so the capability defaults below are applied once instead of being
+// repeated on all eighteen rows.
+const MOCK_SMM_SERVICE_SEEDS: MockSmmServiceSeed[] = [
   { serviceId: "ig-followers", platform: "Instagram", name: "Instagram Followers", serviceType: "followers", rate: 3750, minQty: 100, maxQty: 100000 },
   { serviceId: "ig-likes", platform: "Instagram", name: "Instagram Likes", serviceType: "likes", rate: 1500, minQty: 100, maxQty: 50000 },
   { serviceId: "ig-views", platform: "Instagram", name: "Instagram Views", serviceType: "views", rate: 400, minQty: 500, maxQty: 200000 },
@@ -127,6 +135,13 @@ const MOCK_SMM_SERVICES: SmmService[] = [
   { serviceId: "snap-story-views", platform: "Snapchat", name: "Snapchat Story Views", serviceType: "views", rate: 300, minQty: 500, maxQty: 200000 },
 ]
 
+const MOCK_SMM_SERVICES: SmmService[] = MOCK_SMM_SERVICE_SEEDS.map((seed) => ({
+  ...seed,
+  providerType: "Default",
+  orderMode: "standard",
+  supportsRefill: false,
+  supportsCancel: true,
+}))
 function mockGetCatalog(): SmmService[] {
   return MOCK_SMM_SERVICES.map((s) => ({ ...s }))
 }
@@ -194,15 +209,6 @@ function mockCancelOrder(externalId: string): SmmProviderStatus {
 // ---------------------------------------------------------------------------
 // Real SMM v2 API adapter
 // ---------------------------------------------------------------------------
-
-interface SmmV2Service {
-  id: number | string
-  name: string
-  category: string
-  rate: number | string
-  min: number | string
-  max: number | string
-}
 
 interface SmmV2OrderResponse {
   order: number | string
@@ -283,43 +289,6 @@ async function providerFetch(
   return payload ?? {}
 }
 
-function inferServiceType(name: string | null | undefined): SmmService["serviceType"] {
-  const lower = (name ?? "").toLowerCase()
-  if (lower.includes("view")) return "views"
-  if (lower.includes("like")) return "likes"
-  if (lower.includes("sub")) return "subscribers"
-  if (lower.includes("retweet")) return "retweets"
-  return "followers"
-}
-
-const PLATFORM_ALIASES: Record<string, string> = {
-  meta: "Facebook",
-  fb: "Facebook",
-  "facebookpage": "Facebook",
-  x: "Twitter",
-  "twitterx": "Twitter",
-  "tiktokx": "Twitter",
-  snap: "Snapchat",
-  "snapchatstory": "Snapchat",
-  ig: "Instagram",
-  insta: "Instagram",
-  yt: "YouTube",
-  youtube: "YouTube",
-}
-
-function normalizePlatformCategory(category: string | null | undefined): string {
-  if (!category) return "Other"
-  const lower = category.toLowerCase().replace(/[\s/_-]+/g, "")
-  if (lower in PLATFORM_ALIASES) return PLATFORM_ALIASES[lower]
-  for (const p of SMM_PLATFORMS) {
-    if (lower === p.name.toLowerCase()) return p.name
-  }
-  for (const p of SMM_PLATFORMS) {
-    if (lower.startsWith(p.name.toLowerCase())) return p.name
-  }
-  return category
-}
-
 // ---------------------------------------------------------------------------
 // Public provider API (dispatches between mock and real implementations)
 // ---------------------------------------------------------------------------
@@ -329,39 +298,8 @@ export async function getSmmCatalog(): Promise<SmmService[]> {
   assertSmmConfigured()
   if (isSmmMockProvider()) return mockGetCatalog()
 
-  const payload = (await providerFetch("services")) as SmmV2Service[] | Record<string, SmmV2Service> | null
-  const rows: SmmV2Service[] = Array.isArray(payload)
-    ? payload
-    : payload
-      ? Object.values(payload)
-      : []
-
-  return rows
-    .map((r) => {
-      const rate = Number(r.rate)
-      const minQty = Number(r.min)
-      const maxQty = Number(r.max)
-      const platform = normalizePlatformCategory(r.category)
-      const serviceType = inferServiceType(r.name)
-      return {
-        serviceId: String(r.id ?? ""),
-        platform,
-        name: typeof r.name === "string" && r.name.trim().length > 0 ? r.name : `${serviceType} for ${platform}`,
-        serviceType,
-        rate,
-        minQty,
-        maxQty,
-      }
-    })
-    .filter(
-      (s) =>
-        s.serviceId.length > 0 &&
-        s.platform.length > 0 &&
-        Number.isFinite(s.rate) &&
-        s.rate > 0 &&
-        Number.isFinite(s.minQty) &&
-        Number.isFinite(s.maxQty)
-    )
+  const payload = await providerFetch("services")
+  return normalizeSmmCatalog(payload, SMM_PROVIDER_PRICE_CURRENCY)
 }
 
 /** Create an order on the provider side. Throws SmmProviderError. */

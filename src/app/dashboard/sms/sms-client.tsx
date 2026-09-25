@@ -115,37 +115,61 @@ export function SmsClient() {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [remainingMs, setRemainingMs] = useState(SMS_ORDER_TTL_MS)
+  const [catalogStatus, setCatalogStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  )
   const [searchQuery, setSearchQuery] = useState("")
   const timeoutHandledRef = useRef(false)
 
-  // Load catalog lists once, then prices whenever the country changes.
+  // Load the public catalog whenever the country changes. A failed request must
+  // clear the previous lists/prices; otherwise the UI silently shows an empty
+  // selector or, worse, stale prices from another country.
   useEffect(() => {
     let cancelled = false
     const requestedCountry = country
-    fetch(`/api/sms/catalog?country=${encodeURIComponent(requestedCountry)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled || !data?.countries) return
-        setLists({
-          countries: data.countries,
-          services: data.services,
-        })
-        setCatalog({ country: requestedCountry, prices: data.prices ?? {} })
-        // Functional update keeps `service` out of the dependency array — this
-        // effect should only re-run when the country changes.
-        if (data.services?.length) {
-          setService((current) =>
-            data.services.find((s: SmsServiceOption) => s.code === current)
-              ? current
-              : data.services[0].code
-          )
+    const controller = new AbortController()
+
+    async function loadCatalog() {
+      try {
+        const res = await fetch(
+          `/api/sms/catalog?country=${encodeURIComponent(requestedCountry)}`,
+          { signal: controller.signal, cache: "no-store" }
+        )
+        const data = await res.json().catch(() => null)
+        if (cancelled) return
+
+        if (!res.ok) {
+          throw new Error(data?.error ?? "Could not load SMS pricing. Please try again.")
         }
-      })
-      .catch(() => {
-        if (!cancelled) setError("Could not load SMS pricing. Please refresh.")
-      })
+        if (!Array.isArray(data?.countries) || !Array.isArray(data?.services)) {
+          throw new Error("The SMS provider returned an invalid catalog.")
+        }
+
+        setLists({ countries: data.countries, services: data.services })
+        setCatalog({ country: requestedCountry, prices: data.prices ?? {} })
+        setService(data.services[0]?.code ?? "")
+        setError(null)
+        setCatalogStatus("ready")
+      } catch (loadError) {
+        if (cancelled || (loadError instanceof DOMException && loadError.name === "AbortError")) {
+          return
+        }
+        setLists(null)
+        setCatalog(null)
+        setService("")
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load SMS pricing. Please try again."
+        )
+        setCatalogStatus("error")
+      }
+    }
+
+    void loadCatalog()
     return () => {
       cancelled = true
+      controller.abort()
     }
   }, [country])
 
@@ -308,6 +332,10 @@ export function SmsClient() {
   }
 
   const selectedPrice = prices ? prices[service] : undefined
+  const visibleServices = (lists?.services ?? []).filter((s) =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.code.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="space-y-6">
@@ -446,15 +474,26 @@ export function SmsClient() {
               <select
                 id="sms-country"
                 value={country}
-                disabled={!lists || busy}
-                onChange={(event) => setCountry(event.target.value)}
+                disabled={catalogStatus === "loading" || busy}
+                onChange={(event) => {
+                  setCountry(event.target.value)
+                  setLists(null)
+                  setCatalog(null)
+                  setService("")
+                  setError(null)
+                  setCatalogStatus("loading")
+                }}
                 className="h-8 w-full rounded-lg border border-border bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50"
               >
-                {(lists?.countries ?? []).map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.name}
-                  </option>
-                ))}
+                {catalogStatus === "loading" ? (
+                  <option value="">Loading countries…</option>
+                ) : (
+                  (lists?.countries ?? []).map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -472,12 +511,18 @@ export function SmsClient() {
               </div>
               <div className="max-h-72 overflow-y-auto rounded-lg border border-border">
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {(lists?.services ?? [])
-                    .filter((s) =>
-                      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      s.code.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((s) => {
+                  {catalogStatus === "loading" ? (
+                    <p className="p-4 text-sm text-muted-foreground">Loading services…</p>
+                  ) : catalogStatus === "error" ? (
+                    <p className="p-4 text-sm text-destructive">
+                      Services are temporarily unavailable. Please refresh and try again.
+                    </p>
+                  ) : visibleServices.length === 0 ? (
+                    <p className="p-4 text-sm text-muted-foreground">
+                      No matching services are available.
+                    </p>
+                  ) : (
+                    visibleServices.map((s) => {
                       const p = prices ? prices[s.code] : undefined
                       const isSelected = service === s.code
                       const unavailable = p === undefined || p === null
@@ -506,7 +551,8 @@ export function SmsClient() {
                           </span>
                         </button>
                       )
-                    })}
+                    })
+                  )}
                 </div>
               </div>
             </div>

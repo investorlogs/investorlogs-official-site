@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -9,10 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validations/auth"
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tokenFromUrl = searchParams.get("token") ?? ""
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -20,7 +23,14 @@ export default function ResetPasswordPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema) })
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      token: tokenFromUrl,
+      password: "",
+      confirmPassword: "",
+    },
+  })
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setIsLoading(true)
@@ -61,6 +71,14 @@ export default function ResetPasswordPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {!tokenFromUrl && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  No reset token was found. Open the reset link from your email or request a new one.
+                </AlertDescription>
+              </Alert>
+            )}
+            <input type="hidden" {...register("token")} />
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 New password
@@ -91,7 +109,7 @@ export default function ResetPasswordPage() {
                 <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || !tokenFromUrl}>
               {isLoading ? "Resetting..." : "Reset password"}
             </Button>
           </form>
@@ -106,5 +124,19 @@ export default function ResetPasswordPage() {
         </CardFooter>
       </Card>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+          <Skeleton className="h-96 w-full max-w-md" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

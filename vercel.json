@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "next build",
+  "buildCommand": "prisma migrate deploy && next build",
   "crons": [
     {
       "path": "/api/cron/smm-status",

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { verifyWebhookSignature, mockWebhookSignature } from "@/lib/paymentProvider"
+import { mockWebhookSignature, verifyWebhookSignature } from "@/lib/paymentProvider"
+import {
+  extractGatewayAmount,
+  extractGatewayStatus,
+  extractReference,
+} from "@/lib/deposit-settlement"
+import { settleDeposit } from "@/lib/settleDeposit"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -52,56 +57,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const data = payload.data as Record<string | number, unknown> | undefined
-  const reference =
-    typeof data?.reference === "string"
-      ? data.reference
-      : typeof payload.reference === "string"
-        ? payload.reference
-        : undefined
+  const reference = extractReference(payload)
 
   if (!reference) {
     return NextResponse.json({ error: "Missing reference" }, { status: 400 })
   }
 
-  const statusRaw = (data?.status as string) ?? (payload.status as string) ?? "success"
-  const status = statusRaw === "failed" ? "FAILED" : statusRaw === "successful" ? "COMPLETED" : "PENDING"
+  // Never default an absent status to "success" — that would let a malformed
+  // or unexpected event credit a wallet for a payment that never happened.
+  // Unrecognised statuses normalise to "pending", which credits nothing.
+  const providerStatus = extractGatewayStatus(payload)
+  const paidAmount = extractGatewayAmount(payload)
 
-  const existing = await prisma.walletTransaction.findUnique({
-    where: { reference },
-  })
+  // The webhook and the post-checkout callback share one settlement path, so
+  // they cannot disagree about when balance is created. Idempotency (and the
+  // PENDING -> terminal compare-and-swap that prevents a double credit when a
+  // retry races the callback) lives in settleDeposit.
+  const result = await settleDeposit({ reference, providerStatus, paidAmount })
 
-  if (!existing) {
+  if (result.outcome === "unknown_reference") {
     return NextResponse.json({ error: "Unknown reference" }, { status: 404 })
   }
 
-  if (existing.status !== "PENDING") {
-    // Idempotent: re-processing an already-settled deposit is a no-op.
-    return NextResponse.json({ received: true })
-  }
-
-  // Update the transaction status. A successful deposit also credits the
-  // user's walletBalance — otherwise the customer pays but never sees the
-  // funds, which is the exact failure this webhook exists to prevent.
-  await prisma.$transaction(async (tx) => {
-    await tx.walletTransaction.update({
-      where: { reference },
-      data: { status },
-    })
-
-    if (status === "COMPLETED" && existing.type === "DEPOSIT") {
-      await tx.user.update({
-        where: { id: existing.userId },
-        data: {
-          walletBalance: {
-            increment: existing.amount.toDecimalPlaces(2),
-          },
-        },
-      })
-    }
-  })
-
-  return NextResponse.json({ received: true })
+  // Anything else — credited, already settled, marked failed, still pending,
+  // amount mismatch, not a deposit — is a successfully handled event and gets
+  // a 200 so Paystack stops retrying it.
+  return NextResponse.json({ received: true, outcome: result.outcome })
 }
 
 export { mockWebhookSignature }

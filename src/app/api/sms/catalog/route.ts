@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { computeCharge, smsProviderErrorResponse } from "@/lib/sms-orders"
-import { SMS_COUNTRIES, getProviderCatalog } from "@/lib/smsProvider"
+import { SMS_COUNTRIES, SMS_MOCK_SENTINELS, getProviderCatalog } from "@/lib/smsProvider"
 import { resolveServiceOption, SmsServiceOption } from "@/lib/sms-catalog"
 import { smsCatalogSchema } from "@/lib/validations/sms"
 
@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
     const prices: Record<string, { price: number } | null> = {}
     const services: SmsServiceOption[] = []
     for (const code of Object.keys(costByService).sort()) {
+      // The mock provider prices a few sentinel services (`noship`, `ratelimit`,
+      // `slowcode`, `outofstock`) so the order API can exercise its failure and
+      // compensation paths. They are not real products, so they must never reach
+      // the storefront — see SMS_MOCK_SENTINELS.
+      if (SMS_MOCK_SENTINELS.has(code)) continue
       const cost = costByService[code]
       if (cost === undefined) continue
       prices[code] = { price: (await computeCharge(cost)).toNumber() }

@@ -4,6 +4,8 @@ import {
   SMS_POLL_INTERVAL_MS,
   USD_TO_NGN_RATE,
 } from "@/lib/sms-catalog"
+import { assertNoMockProvidersInProduction } from "@/lib/assertProductionEnv"
+import { normalizeFiveSimPrices } from "@/lib/sms-provider-catalog"
 
 /**
  * SMS provider integration layer (Phase 3).
@@ -63,6 +65,7 @@ const API_KEY = process.env.SMS_PROVIDER_API_KEY?.trim()
 const REQUEST_TIMEOUT_MS = 15_000
 
 export function isMockProvider(): boolean {
+  assertNoMockProvidersInProduction()
   if (process.env.SMS_PROVIDER_MOCK === "true") return true
   if (process.env.SMS_PROVIDER_MOCK === "false") return false
   // No key configured outside production → fall back to the mock provider
@@ -218,6 +221,17 @@ const MOCK_SENTINEL_PRICES: Record<string, number> = {
   slowcode: 0.4,
 }
 
+/**
+ * Codes that exist only to drive the mock provider's failure paths (no stock,
+ * rate limit, never-delivered). They are priced so the order API accepts them
+ * and can exercise its compensation logic, so they must be filtered out at the
+ * public catalog boundary rather than here.
+ */
+export const SMS_MOCK_SENTINELS: ReadonlySet<string> = new Set([
+  ...Object.keys(MOCK_SENTINEL_PRICES),
+  "outofstock",
+])
+
 const MOCK_CODE_DELAY_MS = Number(process.env.SMS_PROVIDER_MOCK_CODE_DELAY_MS ?? 8000)
 
 /**
@@ -298,8 +312,11 @@ function mockCancelOrder(externalId: string): SmsCancelResult {
 // 5sim-compatible HTTP adapter
 // ---------------------------------------------------------------------------
 
-async function providerFetch(path: string): Promise<unknown> {
-  if (!API_KEY) {
+async function providerFetch(
+  path: string,
+  { authenticated = true }: { authenticated?: boolean } = {}
+): Promise<unknown> {
+  if (authenticated && !API_KEY) {
     throw new SmsProviderError(
       "NOT_CONFIGURED",
       "SMS provider is not configured. Set SMS_PROVIDER_API_KEY in your environment.",
@@ -311,7 +328,7 @@ async function providerFetch(path: string): Promise<unknown> {
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        ...(authenticated ? { Authorization: `Bearer ${API_KEY}` } : {}),
         Accept: "application/json",
       },
       cache: "no-store",
@@ -358,6 +375,22 @@ async function providerFetch(path: string): Promise<unknown> {
   return response.json()
 }
 
+export async function assertProviderAuthenticated(): Promise<void> {
+  assertConfigured()
+  if (isMockProvider()) return
+
+  const payload = (await providerFetch(`/v1/user/profile`)) as {
+    id?: number | string
+  }
+  if (payload?.id === undefined || payload?.id === null) {
+    throw new SmsProviderError(
+      "PROVIDER_ERROR",
+      "Provider returned an unexpected account profile response.",
+      502
+    )
+  }
+}
+
 interface FiveSimActivation {
   id: number | string
   phone: string
@@ -399,7 +432,8 @@ function fiveSimCheckToResult(payload: FiveSimCheck): SmsCheckResult {
 export async function getProviderCatalog(
   country: string
 ): Promise<Record<string, number>> {
-  assertConfigured()
+  // Browsing prices is public and must not depend on the purchase credential.
+  // Only purchase/status operations require a configured provider account.
   if (isMockProvider()) {
     const prices: Record<string, number> = {}
     for (const code of [
@@ -413,19 +447,14 @@ export async function getProviderCatalog(
     return prices
   }
 
-  const payload = (await providerFetch(`/v1/guest/products/${encodeURIComponent(country)}`)) as
-    | Record<string, { price?: number | string }>
-    | null
-  const prices: Record<string, number> = {}
-  if (payload) {
-     for (const [product, info] of Object.entries(payload)) {
-      const parsed = Number(info?.price)
-      if (Number.isFinite(parsed) && parsed >= 0) {
-        prices[product.toLowerCase()] = parsed * USD_TO_NGN_RATE
-      }
-    }
-  }
-  return prices
+  // `/v1/guest/prices` is 5sim's public catalog endpoint. The old
+  // `/v1/guest/products/{country}` route now returns 404, which used to make
+  // the entire country/service UI empty. No API key is required for browsing.
+  const payload = await providerFetch(
+    `/v1/guest/prices?country=${encodeURIComponent(country)}`,
+    { authenticated: false }
+  )
+  return normalizeFiveSimPrices(payload, country, USD_TO_NGN_RATE)
 }
 
 /** Rent a virtual number for `country`/`service`. Throws SmsProviderError. */
@@ -437,7 +466,7 @@ export async function requestNumber(
   if (isMockProvider()) return mockRequestNumber(country, service)
 
   const payload = (await providerFetch(
-    `/v1/user/buy/activation?country=${encodeURIComponent(country)}&operator=any&product=${encodeURIComponent(service)}`
+    `/v1/user/buy/activation/${encodeURIComponent(country)}/any/${encodeURIComponent(service)}`
   )) as FiveSimActivation
   if (!payload?.id || !payload?.phone) {
     throw new SmsProviderError(
@@ -455,7 +484,7 @@ export async function checkSmsCode(externalOrderId: string): Promise<SmsCheckRes
   if (isMockProvider()) return mockCheckSmsCode(externalOrderId)
 
   const payload = (await providerFetch(
-    `/v1/user/check?id=${encodeURIComponent(externalOrderId)}`
+    `/v1/user/check/${encodeURIComponent(externalOrderId)}`
   )) as FiveSimCheck
   return fiveSimCheckToResult(payload)
 }
@@ -466,7 +495,7 @@ export async function cancelOrder(externalOrderId: string): Promise<SmsCancelRes
   if (isMockProvider()) return mockCancelOrder(externalOrderId)
 
   try {
-    await providerFetch(`/v1/user/cancel?id=${encodeURIComponent(externalOrderId)}`)
+    await providerFetch(`/v1/user/cancel/${encodeURIComponent(externalOrderId)}`)
     return { ok: true }
   } catch (error) {
     if (error instanceof SmsProviderError && error.httpStatus === 409) {

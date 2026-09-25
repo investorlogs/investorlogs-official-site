@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { paymentsEnabled } from "@/lib/paymentProvider"
+
+/** Result codes that /api/payments/callback redirects back to the wallet with. */
+export type DepositResult = "success" | "failed" | "pending"
 
 interface WalletTx {
   id: string
@@ -23,6 +25,14 @@ interface WalletTx {
 interface WalletClientProps {
   initialBalance: number
   initialTransactions: WalletTx[]
+  /**
+   * Resolved on the server and passed down. This component is a "use client"
+   * bundle, where process.env is not readable — reading the flag here would
+   * always yield undefined and the deposit form could never appear.
+   */
+  canDeposit: boolean
+  /** Set when the user arrives back from the payment gateway. */
+  depositResult: DepositResult | null
 }
 
 function typeIcon(t: string) {
@@ -53,6 +63,8 @@ function statusBadge(status: string) {
 export function WalletClient({
   initialBalance: balance,
   initialTransactions: transactions,
+  canDeposit,
+  depositResult,
 }: WalletClientProps) {
   const [amount, setAmount] = useState("")
   const [method, setMethod] = useState<"card_paystack" | "crypto">("card_paystack")
@@ -95,8 +107,6 @@ export function WalletClient({
     }
   }
 
-  const canDeposit = paymentsEnabled()
-
   return (
     <div className="space-y-6">
       <div>
@@ -106,6 +116,22 @@ export function WalletClient({
           this site.
         </p>
       </div>
+
+      {depositResult && (
+        <Alert
+          variant={depositResult === "success" ? "default" : "destructive"}
+        >
+          <AlertDescription>
+            {depositResult === "success" &&
+              "Payment received. Your wallet balance has been updated."}
+            {depositResult === "failed" &&
+              "That payment did not complete. You have not been charged."}
+            {depositResult === "pending" &&
+              "We are still confirming this payment with our provider. It will " +
+                "appear here as soon as it clears — you can safely close this page."}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="space-y-2">

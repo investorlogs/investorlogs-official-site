@@ -11,7 +11,12 @@ import {
   serializeSmsOrder,
   smsProviderErrorResponse,
 } from "@/lib/sms-orders"
-import { isProviderConfigured, requestNumber, getProviderCatalog } from "@/lib/smsProvider"
+import {
+  assertProviderAuthenticated,
+  isProviderConfigured,
+  requestNumber,
+  getProviderCatalog,
+} from "@/lib/smsProvider"
 import { smsOrderSchema } from "@/lib/validations/sms"
 
 /**
@@ -37,6 +42,14 @@ export async function POST(request: NextRequest) {
         { error: "SMS numbers are temporarily unavailable. Please try again later.", code: "NOT_CONFIGURED" },
         { status: 503 }
       )
+    }
+
+    try {
+      await assertProviderAuthenticated()
+    } catch (error) {
+      const providerResponse = smsProviderErrorResponse(error)
+      if (providerResponse) return providerResponse
+      throw error
     }
 
     // 1. Server-side pricing (never trust client pricing). The supplier base

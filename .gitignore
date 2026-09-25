@@ -53,6 +53,23 @@ next-env.d.ts
 
 # local dev server output
 /dev-server.log
+/dev-server.err.log
 # pm2 runtime logs
 /logs
 .pm2/
+
+# local scratch output from tooling (regenerable, not part of the project)
+/.codex-typecheck.log
+/.next-dev-local.*.log
+/.tmp-review-*.diff
+/build-out.txt
+/diff-config.txt
+/git-status.txt
+/prisma-out.txt
+/prisma-validate.txt
+/probe1.txt
+/typecheck-full.log
+/typecheck-out.txt
+/t.txt
+/tc*.txt
+/d[0-9].txt
