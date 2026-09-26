@@ -115,3 +115,17 @@ If you did not request a reset, you can safely ignore this email.`
   return { subject, html, text }
 }
 
+/**
+ * Generate a 6-digit numeric verification code for signup email verification.
+ * Cryptographically random, zero-padded (e.g. "042817").
+ */
+export function generateVerificationCode(): string {
+  return String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0")
+}
+
+export function buildVerificationEmail(params: { name: string; code: string }) {
+  const subject = "Your InvestorPlugX verification code"
+  const html = `<div style="font-family: system-ui, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;"><h1>Verify your email</h1><p>Hi ${params.name}, your code is: <b style="font-size: 28px; letter-spacing: 6px;">${params.code}</b></p><p>Expires in 15 minutes.</p></div>`
+  const text = `Hi ${params.name}, your InvestorPlugX code is: ${params.code} (expires in 15 minutes).`
+  return { subject, html, text }
+}
