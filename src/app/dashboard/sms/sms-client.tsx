@@ -139,7 +139,9 @@ export function SmsClient() {
         if (cancelled) return
 
         if (!res.ok) {
-          throw new Error(data?.error ?? "Could not load SMS pricing. Please try again.")
+          const code = data?.code ? ` (${data.code})` : ""
+          const detail = data?.detail ? `: ${data.detail}` : ""
+          throw new Error(`${data?.error ?? "Could not load SMS pricing. Please try again."}${code}${detail}`)
         }
         if (!Array.isArray(data?.countries) || !Array.isArray(data?.services)) {
           throw new Error("The SMS provider returned an invalid catalog.")

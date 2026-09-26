@@ -53,10 +53,18 @@ export class SmsOrderError extends Error {
 
 /** Flat profit added to every SMS number sale, in naira. */
 export async function getProfitMarkup(): Promise<Prisma.Decimal> {
-  const configured = await getConfigNumber(
-    "SMS_PROFIT_MARKUP_NGN",
-    Number(process.env.SMS_PROFIT_MARKUP_NGN) || DEFAULT_PROFIT_MARKUP_NGN
-  )
+  let configured: number
+  try {
+    configured = await getConfigNumber(
+      "SMS_PROFIT_MARKUP_NGN",
+      Number(process.env.SMS_PROFIT_MARKUP_NGN) || DEFAULT_PROFIT_MARKUP_NGN
+    )
+  } catch (error) {
+    // The Config table may not exist yet on a fresh database (migrations
+    // pending) — a markup lookup must never take down the whole catalog.
+    console.error("[sms] profit markup lookup failed, using environment fallback:", error)
+    configured = Number(process.env.SMS_PROFIT_MARKUP_NGN) || DEFAULT_PROFIT_MARKUP_NGN
+  }
   return new Prisma.Decimal(configured).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
 }
 

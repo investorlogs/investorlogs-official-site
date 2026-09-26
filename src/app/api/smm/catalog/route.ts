@@ -69,7 +69,11 @@ export async function GET(request: NextRequest) {
     const providerResponse = smmProviderErrorResponse(error)
     if (providerResponse) return providerResponse
     return NextResponse.json(
-      { error: "Could not load SMM services. Please try again." },
+      {
+        error: "Could not load SMM services. Please try again.",
+        code: "CATALOG_ERROR",
+        detail: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     )
   }

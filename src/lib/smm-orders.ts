@@ -59,7 +59,14 @@ export function mapEnumToProviderStatus(status: SmmStatus): string {
 }
 
 export async function getSmmMarkupPercent(): Promise<number> {
-  return getConfigNumber("SMM_MARKUP_PERCENT", Number(process.env.SMM_MARKUP_PERCENT) || 40)
+  try {
+    return getConfigNumber("SMM_MARKUP_PERCENT", Number(process.env.SMM_MARKUP_PERCENT) || 40)
+  } catch (error) {
+    // Same resilience as the SMS markup: a missing Config table must not 500
+    // the whole catalog.
+    console.error("[smm] markup lookup failed, using environment fallback:", error)
+    return Number(process.env.SMM_MARKUP_PERCENT) || 40
+  }
 }
 
 /**

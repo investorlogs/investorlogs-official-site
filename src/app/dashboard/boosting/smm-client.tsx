@@ -118,7 +118,9 @@ export function SmmClient() {
       .then(async (res) => {
         if (!res.ok) {
           const err = await res.json().catch(() => null)
-          throw new Error(err?.error ?? `Could not load services (${res.status}).`)
+          const code = err?.code ? ` (${err.code})` : ""
+          const detail = err?.detail ? `: ${err.detail}` : ""
+          throw new Error(`${err?.error ?? `Could not load services (${res.status}).`}${code}${detail}`)
         }
         return res.json()
       })

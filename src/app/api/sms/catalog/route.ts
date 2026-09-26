@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
 
     console.error("SMS catalog error:", error)
     return NextResponse.json(
-      { error: "Could not load SMS pricing. Please try again." },
+      {
+        error: "Could not load SMS pricing. Please try again.",
+        code: "CATALOG_ERROR",
+        detail: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     )
   }

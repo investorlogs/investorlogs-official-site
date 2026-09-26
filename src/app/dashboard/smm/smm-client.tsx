@@ -94,7 +94,9 @@ export function SmmClient() {
       .then((data) => {
         if (cancelled) return
         if (!data?.platforms) {
-          setError(data?.error ?? "Could not load services.")
+          const code = data?.code ? ` (${data.code})` : ""
+          const detail = data?.detail ? `: ${data.detail}` : ""
+          setError(`${data?.error ?? "Could not load services."}${code}${detail}`)
           return
         }
         setPlatforms(data.platforms ?? [])
