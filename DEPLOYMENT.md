@@ -129,10 +129,21 @@ These were fixed so a clean cloud build works:
    webhook and credit a wallet without paying. The mock path is now refused in
    production at two layers (`paymentProvider.ts` and the webhook route).
 
-4. **Cron jobs are declared.** `vercel.json` schedules
-   `/api/cron/smm-status` (every 5 min) and `/api/cron/supplier-sync` (every 6 h).
-   Vercel automatically sends `Authorization: Bearer $CRON_SECRET`, which is
-   exactly what those routes expect — no extra config needed.
+4. **Cron jobs are scheduled by GitHub Actions, not Vercel.**
+   `.github/workflows/cron.yml` triggers `/api/cron/smm-status` every 5 min and
+   `/api/cron/supplier-sync` every 6 h. Both send
+   `Authorization: Bearer $CRON_SECRET`, which is exactly what the routes
+   expect. Two repository settings are required: the **`SITE_URL` variable**
+   (e.g. `https://investorplugx.com`) and the **`CRON_SECRET` secret**, under
+   *Settings -> Secrets and variables -> Actions*.
+
+   These were previously Vercel Cron entries in `vercel.json`. They cannot be
+   there on the Hobby plan: Vercel rejects any cron that fires more than once
+   per day, and that validation error **fails the whole build** --
+   *"Hobby accounts are limited to daily cron jobs. This cron expression would
+   run more than once per day."* Every deploy since that config was added has
+   failed for this reason. See
+   [Cron usage & pricing](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 
 ---
 

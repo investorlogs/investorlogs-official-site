@@ -1,0 +1,81 @@
+name: Scheduled jobs
+
+# These jobs used to be declared in vercel.json as Vercel Cron entries, but the
+# Vercel Hobby plan rejects any cron that runs more than once per day, and that
+# validation failure blocks the entire build:
+#
+#   Hobby accounts are limited to daily cron jobs. This cron expression would
+#   run more than once per day.
+#
+# (https://vercel.com/docs/cron-jobs/usage-and-pricing)
+#
+# GitHub Actions has no such restriction, so the schedules live here instead.
+# The endpoints authenticate with the same CRON_SECRET the routes already
+# expect, and the URL is taken from the SITE_URL repository variable.
+
+on:
+  schedule:
+    # SMM order status backstop. The dashboard already polls
+    # /api/smm/status (which queries the provider live) every 5s while an order
+    # is open, so this is a safety net for orders no user is watching.
+    - cron: "*/5 * * * *"
+    # Supplier catalog/description refresh.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  run:
+    name: Trigger cron endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call cron endpoints
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SITE_URL:-}" ]; then
+            echo "::error::Repository variable SITE_URL is not set." >&2
+            echo "Add it under Settings -> Secrets and variables -> Actions -> Variables." >&2
+            exit 1
+          fi
+
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Repository secret CRON_SECRET is not set." >&2
+            exit 1
+          fi
+
+          # One workflow serves both cadences: pick the endpoint from the cron
+          # expression that triggered this run. workflow_dispatch (SCHEDULE is
+          # empty) is a manual catch-up and re-syncs SMM order status.
+          case "${SCHEDULE}" in
+            "17 */6 * * *") job="supplier-sync" ;;
+            *)               job="smm-status" ;;
+          esac
+
+          url="${SITE_URL%/}/api/cron/${job}"
+          echo "Calling ${url}"
+
+          # The routes return 503 when a provider is unconfigured; that is a
+          # config state, not a failure of this workflow, so it is tolerated.
+          code=$(curl -sS -o /tmp/cron-out -w '%{http_code}' \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --max-time 300 "$url") || code="000"
+
+          echo "HTTP ${code}"
+          cat /tmp/cron-out
+          echo
+
+          case "$code" in
+            200) ;;
+            503) echo "::warning::Endpoint reported a provider config problem." ;;
+            401|403) echo "::error::CRON_SECRET does not match the deployed value." >&2; exit 1 ;;
+            *) echo "::error::Cron endpoint returned HTTP ${code}." >&2; exit 1 ;;
+          esac
