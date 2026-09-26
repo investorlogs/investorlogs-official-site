@@ -76,6 +76,11 @@ jobs:
           case "$code" in
             200) ;;
             503) echo "::warning::Endpoint reported a provider config problem." ;;
+            502)
+              echo "::warning::Supplier sync returned partial failure (HTTP 502). Payload:"
+              cat /tmp/cron-out
+              echo
+              ;;
             401|403) echo "::error::CRON_SECRET does not match the deployed value." >&2; exit 1 ;;
             *) echo "::error::Cron endpoint returned HTTP ${code}." >&2; exit 1 ;;
           esac
