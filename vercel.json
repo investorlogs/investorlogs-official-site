@@ -1,4 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "prisma generate && (prisma migrate deploy || echo \"migrate-skipped-continuing-to-build\") && next build"
+  "buildCommand": "prisma generate && prisma migrate deploy && next build"
 }
