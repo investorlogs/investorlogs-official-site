@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prisma, withDbRetry } from "@/lib/prisma"
 import { getSmmOrderStatus, isSmmProviderConfigured, type SmmProviderStatus } from "@/lib/smmProvider"
 import { syncSmmOrderStatus } from "@/lib/smm-orders"
 
@@ -26,9 +26,20 @@ export async function GET(request: Request) {
     )
   }
 
-  const orders = await prisma.smmOrder.findMany({
-    where: { status: { in: ["PENDING", "PROCESSING"] } },
-  })
+  let orders: Awaited<ReturnType<typeof prisma.smmOrder.findMany>>
+  try {
+    orders = await withDbRetry(() =>
+      prisma.smmOrder.findMany({
+        where: { status: { in: ["PENDING", "PROCESSING"] } },
+      })
+    )
+  } catch (error) {
+    console.error("[cron/smm-status] database unavailable:", error instanceof Error ? error.message : error)
+    return NextResponse.json(
+      { error: "Database unavailable.", code: "DB_UNAVAILABLE" },
+      { status: 503 }
+    )
+  }
 
   let updated = 0
   let skipped = 0
