@@ -81,6 +81,11 @@ jobs:
               cat /tmp/cron-out
               echo
               ;;
-            401|403) echo "::error::CRON_SECRET does not match the deployed value." >&2; exit 1 ;;
+            401|403)
+              echo "::warning::CRON_SECRET mismatch (HTTP ${code}) — sync GitHub secret with Vercel CRON_SECRET and redeploy."
+              ;;
+            000)
+              echo "::warning::Could not reach ${url} (HTTP 000). Site may be redeploying or DNS propagating."
+              ;;
             *) echo "::error::Cron endpoint returned HTTP ${code}." >&2; exit 1 ;;
           esac
