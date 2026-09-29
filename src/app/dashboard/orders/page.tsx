@@ -74,19 +74,14 @@ export default async function OrdersPage() {
             <p className="text-xs text-muted-foreground">Coming soon</p>
           </CardContent>
         </Card>
-        <Link href="/dashboard/orders/boosting" className="group">
-          <Card className="h-full transition-colors group-hover:border-primary/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">SMM Orders</CardTitle>
-              <History className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                View your boosting order history &rarr;
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <Card className="h-full opacity-70">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Boosting Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">Coming soon</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>

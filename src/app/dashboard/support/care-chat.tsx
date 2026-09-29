@@ -110,7 +110,7 @@ export function CareChat() {
             <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
               <Bot className="mb-2 h-10 w-10 opacity-40" />
               <p className="text-sm">
-                Ask me anything — orders, wallet, SMS, boosting, or your account.
+                Ask me anything — orders, wallet, SMS, or your account.
               </p>
               <p className="mt-1 text-xs">
                 I can help you solve most issues yourself. For fraud or account

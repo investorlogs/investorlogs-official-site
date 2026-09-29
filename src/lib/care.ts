@@ -23,10 +23,7 @@ export const CARE_KB = {
     status: "Order status updates from PENDING to RECEIVED when the code arrives. You can check status anytime in Order History.",
     cancel: "You can cancel a pending SMS order from Order History. Credited amounts are returned to your wallet.",
   },
-  smm: {
-    howToOrder: "Go to Social Boosting, pick a service, enter the target link, choose quantity, and order from your wallet balance.",
-    delivery: "SMM orders are processed by the supplier. Status updates from PENDING to PROCESSING to COMPLETED.",
-  },
+  // Social Boosting is hidden from navigation -- keep the assistant from sending users to a removed route.  smm: {    howToOrder: "Social Boosting is temporarily unavailable. Check back soon.",    delivery: "Existing boosting orders are still tracked. Contact support with your order reference for status updates.",  },
   wallet: {
     deposit: "Deposits are currently disabled while the payment flow is being finalised. Check back soon.",
     balance: "Your balance is shown in the sidebar and on the Deposit page. It is deducted on purchase and credited on refunds.",

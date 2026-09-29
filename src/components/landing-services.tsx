@@ -1,7 +1,6 @@
 import Link from "next/link"
 import {
   PurchaseLogsIcon,
-  SocialBoostingIcon,
   PurchaseNumberIcon,
   WorkingPicturesIcon,
   WorkingToolsIcon,
@@ -17,11 +16,10 @@ interface Service {
 
 const services: Service[] = [
   { icon: <PurchaseLogsIcon />, title: "Purchase Logs", delay: "0s", href: "/dashboard/accounts" },
-  { icon: <SocialBoostingIcon />, title: "Social Boosting", delay: "0.15s", href: "/dashboard/boosting" },
-  { icon: <PurchaseNumberIcon />, title: "Purchase Number", delay: "0.3s", href: "/dashboard/sms" },
-  { icon: <WorkingPicturesIcon />, title: "Working Pictures", delay: "0.45s", href: "/dashboard/accounts" },
-  { icon: <WorkingToolsIcon />, title: "Working Tools", delay: "0.6s", href: "/dashboard/accounts" },
-  { icon: <DashboardIcon />, title: "Dashboard", delay: "0.75s", href: "/dashboard" },
+  { icon: <PurchaseNumberIcon />, title: "Purchase Number", delay: "0.15s", href: "/dashboard/sms" },
+  { icon: <WorkingPicturesIcon />, title: "Working Pictures", delay: "0.3s", href: "/dashboard/accounts" },
+  { icon: <WorkingToolsIcon />, title: "Working Tools", delay: "0.45s", href: "/dashboard/accounts" },
+  { icon: <DashboardIcon />, title: "Dashboard", delay: "0.6s", href: "/dashboard" },
 ]
 
 function ServiceCard({ icon, title, delay, href }: Service) {
@@ -44,7 +42,7 @@ function ServiceCard({ icon, title, delay, href }: Service) {
 export function LandingServices() {
   return (
     <section className="relative z-10 w-full">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {services.map((svc, i) => (
           <ServiceCard key={i} {...svc} />
         ))}
