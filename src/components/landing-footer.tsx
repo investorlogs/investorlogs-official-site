@@ -94,12 +94,14 @@ export function LandingFooter({ initialSmsSent, initialAccountsReady }: LandingF
         >
           Terms of Service
         </Link>
-        <Link
-          href="/dashboard/support"
+        <a
+          href="https://t.me/Investorlogs1"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-sm text-slate-400 transition-colors hover:text-slate-200"
         >
           Support
-        </Link>
+        </a>
       </div>
 
       <div className="flex items-center justify-center sm:justify-start">

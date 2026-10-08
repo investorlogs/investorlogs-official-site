@@ -568,9 +568,14 @@ export function SmmClient() {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <PackageOpen className="h-4 w-4" />
           <span>
-            Questions? Visit the{" "}
-            <a href="/dashboard/support" className="underline">
-              support page
+            Questions? Chat with us on{" "}
+            <a
+              href="https://t.me/Investorlogs1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Telegram
             </a>
             .
           </span>
