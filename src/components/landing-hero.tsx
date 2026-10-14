@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { LandingSocialRow } from "@/components/landing-social-row"
 
 function TitleArrow() {
   return (
@@ -66,6 +67,7 @@ function TitleConnection() {
 export function LandingHero() {
   return (
     <section className="relative flex w-full flex-col items-center justify-center gap-12 pt-28 text-center">
+      <LandingSocialRow />
       <h1 className="relative flex items-center justify-center gap-0 text-5xl font-black sm:text-6xl md:text-7xl lg:text-8xl">
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-300 to-amber-400">
           InvestorPlugX
