@@ -2,8 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,21 +12,26 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [fieldError, setFieldError] = useState<string | null>(null)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) })
-
-  const onSubmit = async (data: ForgotPasswordInput) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const trimmed = email.trim()
+    const parsed = forgotPasswordSchema.safeParse({ email: trimmed })
+    if (!parsed.success) {
+      setFieldError(parsed.error.issues[0]?.message ?? "Invalid email address")
+      return
+    }
+    setFieldError(null)
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ email: trimmed }),
       })
       // Always treat as success to avoid user enumeration.
       setSuccess(true)
@@ -56,7 +59,7 @@ export default function ForgotPasswordPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -70,11 +73,12 @@ export default function ForgotPasswordPage() {
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  {...register("email")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                {fieldError && (
+                  <p className="text-sm text-destructive">{fieldError}</p>
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>

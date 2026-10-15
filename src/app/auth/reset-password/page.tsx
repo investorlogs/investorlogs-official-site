@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,6 +22,7 @@ function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
@@ -31,6 +32,13 @@ function ResetPasswordForm() {
       confirmPassword: "",
     },
   })
+
+  // Keep the hidden token field in sync with the URL. defaultValues only
+  // applies on first mount; without this a client-side navigation to a
+  // different ?token= would submit the stale token and fail as INVALID_TOKEN.
+  useEffect(() => {
+    setValue("token", tokenFromUrl)
+  }, [tokenFromUrl, setValue])
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setIsLoading(true)
