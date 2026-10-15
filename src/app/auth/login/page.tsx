@@ -20,6 +20,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
@@ -41,6 +42,7 @@ function LoginForm() {
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true)
     setError(null)
+    setVerifyEmail(null)
 
     try {
       const result = await signIn("credentials", {
@@ -50,7 +52,13 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setError("Invalid email or password")
+        const msg = result.error || "Invalid email or password"
+        if (msg.toLowerCase().includes("verify")) {
+          setError("Please verify your email first. Check your inbox for the 6-digit code.")
+          setVerifyEmail(data.email)
+        } else {
+          setError(msg)
+        }
       } else {
         router.push(callbackUrl)
         router.refresh()
@@ -80,7 +88,20 @@ function LoginForm() {
             )}
             {error && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {error}
+                  {verifyEmail && (
+                    <>
+                      {" "}
+                      <Link
+                        href={`/auth/verify?email=${encodeURIComponent(verifyEmail)}`}
+                        className="underline underline-offset-2 font-medium"
+                      >
+                        Verify now
+                      </Link>
+                    </>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
