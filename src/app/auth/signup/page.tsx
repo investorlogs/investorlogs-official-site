@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signupSchema, type SignupInput } from "@/lib/validations/auth"
@@ -111,10 +112,10 @@ export default function SignupPage() {
               <label htmlFor="password" className="text-sm font-medium">
                 Password
               </label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
+                autoComplete="new-password"
                 {...register("password")}
                 disabled={isLoading}
               />
@@ -127,10 +128,10 @@ export default function SignupPage() {
               <label htmlFor="confirmPassword" className="text-sm font-medium">
                 Confirm Password
               </label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="••••••••"
+                autoComplete="new-password"
                 {...register("confirmPassword")}
                 disabled={isLoading}
               />

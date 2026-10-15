@@ -6,7 +6,7 @@ import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -91,9 +91,8 @@ function ResetPasswordForm() {
               <label htmlFor="password" className="text-sm font-medium">
                 New password
               </label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 {...register("password")}
                 disabled={isLoading}
@@ -106,9 +105,8 @@ function ResetPasswordForm() {
               <label htmlFor="confirmPassword" className="text-sm font-medium">
                 Confirm password
               </label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="••••••••"
                 {...register("confirmPassword")}
                 disabled={isLoading}
