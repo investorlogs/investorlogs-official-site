@@ -3,6 +3,7 @@ import { z } from "zod"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
+import { encryptCredential } from "@/lib/accountCredentials"
 import { purchaseSchema } from "@/lib/validations/accounts"
 import { placeLogOrder, getSupplierProductId } from "@/lib/xclusivePlugs"
 
@@ -238,7 +239,7 @@ async function runPurchaseTransaction(
 
     await tx.digitalAccount.updateMany({
       where: { id: { in: selectedIds } },
-      data: { credentials: credentials || "" },
+      data: { credentials: encryptCredential(credentials || "") },
     })
 
     const buyer = await tx.user.findUniqueOrThrow({

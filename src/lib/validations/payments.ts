@@ -1,6 +1,10 @@
 import { z } from "zod"
 
-export const paymentMethodSchema = z.enum(["card_paystack", "crypto"])
+export const paymentMethodSchema = z.enum([
+  "card_paystack",
+  "transfer_flutterwave",
+  "crypto",
+])
 
 export const paymentInitializeSchema = z.object({
   amount: z

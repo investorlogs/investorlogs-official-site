@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { requireSession } from "@/lib/session"
+import { CUSTOMER_HIDDEN_TRANSACTION_TYPES } from "@/lib/ledger-visibility"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,7 +30,7 @@ export default async function OrdersPage() {
   const session = await requireSession("/dashboard/orders")
 
   const transactions = await prisma.walletTransaction.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, type: { notIn: CUSTOMER_HIDDEN_TRANSACTION_TYPES } },
     orderBy: { createdAt: "desc" },
     take: 50,
   })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import { buildCareSystemPrompt, needsEscalation, buildEscalationReply } from "@/lib/care"
+import { CUSTOMER_HIDDEN_TRANSACTION_TYPES } from "@/lib/ledger-visibility"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
         select: { walletBalance: true },
       }),
       prisma.walletTransaction.findMany({
-        where: { userId: session.user.id },
+        where: { userId: session.user.id, type: { notIn: CUSTOMER_HIDDEN_TRANSACTION_TYPES } },
         orderBy: { createdAt: "desc" },
         take: 5,
         select: { id: true, type: true, status: true, amount: true },

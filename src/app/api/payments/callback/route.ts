@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
-import { PaymentProviderError, verifyPaystackPayment } from "@/lib/paymentProvider"
+import { PaymentProviderError, verifyPaystackPayment, verifyFlutterwavePayment } from "@/lib/paymentProvider"
 import { isPlausibleReference } from "@/lib/deposit-settlement"
 import { settleDeposit } from "@/lib/settleDeposit"
 
@@ -19,7 +19,8 @@ function walletUrl(request: NextRequest, result?: string): URL {
 }
 
 /**
- * Post-checkout callback for Paystack (the non-webhook confirmation path).
+ * Post-checkout callback for Paystack or Flutterwave (the non-webhook
+ * confirmation path).
  *
  * This URL is attacker-controllable: a customer can edit the `reference` in
  * their own address bar, or simply visit it with a reference they did not pay
@@ -39,16 +40,11 @@ export async function GET(request: NextRequest) {
 
   if (!session?.user?.id) {
     return NextResponse.redirect(
-      new URL(
-        `/auth/login?callbackUrl=${encodeURIComponent(WALLET_PATH)}`,
-        (process.env.NEXTAUTH_URL ?? request.nextUrl.origin).replace(/\/+$/, "")
-      )
+      new URL(`/auth/login?callbackUrl=${encodeURIComponent(WALLET_PATH)}`, request.url)
     )
   }
 
-  const raw =
-    request.nextUrl.searchParams.get("reference") ??
-    request.nextUrl.searchParams.get("ref")
+  const raw = request.nextUrl.searchParams.get("reference") ?? request.nextUrl.searchParams.get("ref")
 
   if (!isPlausibleReference(raw)) {
     return NextResponse.redirect(walletUrl(request))
@@ -69,23 +65,28 @@ export async function GET(request: NextRequest) {
 
   let providerStatus: "success" | "failed" | "pending"
   let paidAmount: number | null
+  let provider: "paystack" | "flutterwave" | null = null
 
+  // Both gateways use the same reference and callback URL, so whoever the
+  // customer actually paid on is the one that will verify successfully.
+  // Try Paystack first, fall back to Flutterwave.
+  let verification
   try {
-    const verification = await verifyPaystackPayment(reference)
-    // Guard against a gateway echoing back a different reference than we asked
-    // about; settle the reference we actually resolved ownership of.
-    if (verification.reference !== reference) {
-      return NextResponse.redirect(walletUrl(request))
-    }
-    providerStatus = verification.status
-    paidAmount = verification.amount
-  } catch (error) {
-    // The wallet is the source of truth here, not the gateway. If verification
-    // is unreachable we must NOT guess: leave the deposit PENDING so the
-    // webhook can still settle it, and tell the customer it is confirming.
-    console.error(`[payments/callback] verification failed for ${reference}:`, error)
-    return NextResponse.redirect(walletUrl(request, "pending"))
+    verification = await verifyPaystackPayment(reference)
+    provider = "paystack"
+  } catch {
+    verification = await verifyFlutterwavePayment(reference)
+    provider = "flutterwave"
   }
+
+  // Guard against a gateway echoing back a different reference than we asked
+  // about; settle the reference we actually resolved ownership of.
+  if (verification.reference !== reference) {
+    return NextResponse.redirect(walletUrl(request))
+  }
+
+  providerStatus = verification.status
+  paidAmount = verification.amount
 
   const result = await settleDeposit({ reference, providerStatus, paidAmount })
 

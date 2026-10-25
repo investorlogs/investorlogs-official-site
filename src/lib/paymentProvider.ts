@@ -1,12 +1,15 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { assertNoMockProvidersInProduction } from "@/lib/assertProductionEnv"
 import { koboToNaira, normalizeProviderStatus } from "@/lib/deposit-settlement"
+import { FLUTTERWAVE_WEBHOOK_SECRET } from "@/lib/flutterwave"
+import { flutterwaveInitialize } from "@/lib/flutterwave"
 
 /**
  * Payment gateway integration (Phase 5).
  *
- * Supports two providers:
+ * Supports three providers:
  *  - Paystack (card payments) — configured via PAYSTACK_SECRET_KEY
+ *  - Flutterwave (bank transfer) — configured via FLUTTERWAVE_SECRET_KEY
  *  - Crypto / Web3 — configured via CRYPTO_PROVIDER_API_KEY
  *
  * When neither key is set (or PAYMENT_PROVIDER_MOCK=true), a mock provider
@@ -31,7 +34,7 @@ const MOCK_WEBHOOK_SECRET =
   process.env.MOCK_WEBHOOK_SECRET ??
   (process.env.NODE_ENV === "production" ? undefined : "mock-secret-dev-only")
 
-export type PaymentMethod = "card_paystack" | "crypto"
+export type PaymentMethod = "card_paystack" | "transfer_flutterwave" | "crypto"
 
 export class PaymentProviderError extends Error {
   constructor(
@@ -50,15 +53,23 @@ export class PaymentProviderError extends Error {
 
 export interface PaymentInitResult {
   reference: string
-  authorizationUrl: string
+  authorizationUrl?: string
   provider: PaymentMethod
   qrCode?: string
+  bankDetails?: {
+    accountNumber: string
+    bankName: string
+    bankCode: string
+    accountName: string
+  }
 }
 
 export interface PaymentVerification {
   reference: string
   status: "success" | "failed" | "pending"
   amount: number
+  currency: string
+  provider: string
 }
 
 export { MOCK_WEBHOOK_SECRET, PAYSTACK_WEBHOOK_SECRET }
@@ -85,7 +96,12 @@ export function paymentsEnabled(): boolean {
 }
 
 export function isPaymentProviderConfigured(): boolean {
-  return isPaymentMock() || Boolean(PAYSTACK_SECRET) || Boolean(CRYPTO_SECRET)
+  return (
+    isPaymentMock() ||
+    Boolean(PAYSTACK_SECRET) ||
+    Boolean(CRYPTO_SECRET) ||
+    Boolean(process.env.FLUTTERWAVE_SECRET_KEY?.trim())
+  )
 }
 
 function assertConfigured(method: PaymentMethod) {
@@ -94,6 +110,13 @@ function assertConfigured(method: PaymentMethod) {
     throw new PaymentProviderError(
       "NOT_CONFIGURED",
       "Paystack is not configured. Set PAYSTACK_SECRET_KEY in your environment.",
+      503
+    )
+  }
+  if (method === "transfer_flutterwave" && !process.env.FLUTTERWAVE_SECRET_KEY?.trim()) {
+    throw new PaymentProviderError(
+      "NOT_CONFIGURED",
+      "Flutterwave is not configured. Set FLUTTERWAVE_SECRET_KEY in your environment.",
       503
     )
   }
@@ -117,6 +140,13 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
+
+// ---------------------------------------------------------------------------
+// Flutterwave provider (re-exported from @/lib/flutterwave)
+// ---------------------------------------------------------------------------
+export { flutterwaveInitialize, flutterwaveVerifyPayment, isFlutterwaveConfigured, flutterwaveVerifyPayment as verifyFlutterwavePayment } from "@/lib/flutterwave"
+
+
 // ---------------------------------------------------------------------------
 // Mock provider
 // ---------------------------------------------------------------------------
@@ -130,7 +160,22 @@ async function mockInitialize(
   const prefix = method === "crypto" ? "mockcrypto" : "mockpay"
   const reference = generateReference(prefix)
   const authorizationUrl = `${NEXTAUTH_URL}/payments/mockcheckout?ref=${reference}&amount=${amount.toFixed(2)}`
-  return { reference, authorizationUrl, provider: method, qrCode: method === "crypto" ? authorizationUrl : undefined }
+  return {
+    reference,
+    authorizationUrl: method === "transfer_flutterwave" ? undefined : authorizationUrl,
+    provider: method,
+    qrCode: method === "crypto" ? authorizationUrl : undefined,
+    ...(method === "transfer_flutterwave"
+      ? {
+          bankDetails: {
+            accountNumber: "0000000000",
+            bankName: "Mock Bank",
+            bankCode: "000000",
+            accountName: "Mock Account",
+          },
+        }
+      : {}),
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -237,7 +282,7 @@ export async function verifyPaystackPayment(
 
   // Paystack answers 404 for a reference it does not recognise.
   if (response.status === 404) {
-    return { reference, status: "failed", amount: 0 }
+    return { reference, status: "failed", amount: 0, currency: "NGN", provider: "paystack" }
   }
 
   if (!response.ok) {
@@ -269,6 +314,8 @@ export async function verifyPaystackPayment(
     status: normalizeProviderStatus(data.status),
     // Paystack reports kobo; the wallet stores naira.
     amount: koboToNaira(data.amount) ?? 0,
+    currency: "NGN",
+    provider: "paystack",
   }
 }
 
@@ -304,6 +351,7 @@ export async function initializePayment(
 
   if (isPaymentMock()) return mockInitialize(userId, email, amount, method)
   if (method === "card_paystack") return paystackInitialize(userId, email, amount)
+  if (method === "transfer_flutterwave") return flutterwaveInitialize(userId, email, amount)
   return cryptoInitialize(userId, email, amount)
 }
 
@@ -311,14 +359,19 @@ export async function initializePayment(
 export function verifyWebhookSignature(
   rawBody: string,
   signature: string,
-  provider: "mock" | "paystack"
+  provider: "mock" | "paystack" | "flutterwave"
 ): boolean {
   if (!signature) return false
   // In production the mock branch is refused outright — the mock secret has no
   // default there, so this both blocks forged signatures and makes the intent
   // explicit at the call site.
   if (provider === "mock" && process.env.NODE_ENV === "production") return false
-  const secret = provider === "paystack" ? PAYSTACK_WEBHOOK_SECRET : MOCK_WEBHOOK_SECRET
+  const secret =
+    provider === "paystack"
+      ? PAYSTACK_WEBHOOK_SECRET
+      : provider === "flutterwave"
+        ? FLUTTERWAVE_WEBHOOK_SECRET
+        : MOCK_WEBHOOK_SECRET
   if (!secret) return false
   const algo = provider === "paystack" ? "sha512" : "sha256"
   const expected = createHmac(algo, secret).update(rawBody).digest("hex")

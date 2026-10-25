@@ -9,6 +9,7 @@ import {
   isPaymentProviderConfigured,
   paymentsEnabled,
 } from "@/lib/paymentProvider"
+import { FlutterwaveProviderError } from "@/lib/flutterwave"
 import { paymentInitializeSchema } from "@/lib/validations/payments"
 
 export const dynamic = "force-dynamic"
@@ -50,19 +51,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verify the user exists in the database before creating a deposit.
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "User account not found. Please log in again.", code: "USER_NOT_FOUND" },
+        { status: 401 }
+      )
+    }
+
     const charge = new Prisma.Decimal(amount).toDecimalPlaces(2)
 
     // 1. Create the DEPOSIT record first (idempotency anchor).
-    const reference = `${method === "crypto" ? "crypto" : "card"}-${userId}-${Date.now()}`
-    const tx = await prisma.walletTransaction.create({
-      data: {
-        userId,
-        amount: charge,
-        type: "DEPOSIT",
-        status: "PENDING",
-        reference,
-      },
-    })
+    const referencePrefix = method === "crypto" ? "crypto" : method === "transfer_flutterwave" ? "transfer" : "card"
+    const reference = `${referencePrefix}-${userId}-${Date.now()}`
+    let tx
+    try {
+      tx = await prisma.walletTransaction.create({
+        data: {
+          userId,
+          amount: charge,
+          type: "DEPOSIT",
+          status: "PENDING",
+          reference,
+        },
+      })
+    } catch (createError) {
+      console.error("Wallet transaction create error:", createError)
+      return NextResponse.json(
+        { error: "Could not create deposit record. Please try again.", code: "DEPOSIT_CREATE_FAILED" },
+        { status: 500 }
+      )
+    }
 
     // 2. Create the payment session on the provider.
     try {
@@ -99,7 +122,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (error instanceof PaymentProviderError) {
+    if (
+      error instanceof PaymentProviderError ||
+      error instanceof FlutterwaveProviderError
+    ) {
       return NextResponse.json(
         { error: error.message, code: error.code },
         { status: error.httpStatus }
@@ -112,7 +138,7 @@ export async function POST(request: NextRequest) {
 }
 
 function isPaymentProviderError(error: unknown): NextResponse | null {
-  if (error instanceof PaymentProviderError) {
+  if (error instanceof PaymentProviderError || error instanceof FlutterwaveProviderError) {
     return NextResponse.json(
       { error: error.message, code: error.code },
       { status: error.httpStatus }

@@ -67,10 +67,16 @@ export function WalletClient({
   depositResult,
 }: WalletClientProps) {
   const [amount, setAmount] = useState("")
-  const [method, setMethod] = useState<"card_paystack" | "crypto">("card_paystack")
+  const [method, setMethod] = useState<"card_paystack" | "transfer_flutterwave" | "crypto">("transfer_flutterwave")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [bankDetails, setBankDetails] = useState<{
+    accountNumber: string
+    bankName: string
+    bankCode: string
+    accountName: string
+  } | null>(null)
 
   const handleDeposit = async () => {
     setBusy(true)
@@ -94,12 +100,18 @@ export function WalletClient({
         return
       }
 
+      if (data.bankDetails) {
+        setBankDetails(data.bankDetails)
+        setNotice(`Transfer ₦${numAmount.toFixed(2)} to:\n${data.bankDetails.bankName} — Account ${data.bankDetails.accountNumber} (${data.bankDetails.accountName})`)
+        return
+      }
+
       if (data.authorizationUrl) {
         window.location.href = data.authorizationUrl
         return
       }
 
-      setNotice("Payment initialized but no checkout URL was returned.")
+      setNotice("Payment initialized but no checkout URL or bank details were returned.")
     } catch {
       setError("Network error. Please try again.")
     } finally {
@@ -174,9 +186,51 @@ export function WalletClient({
             </Alert>
           )}
           {notice && (
-            <Alert>
+            <Alert variant="default">
               <AlertDescription>{notice}</AlertDescription>
             </Alert>
+          )}
+          {bankDetails && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Bank Transfer Details</CardTitle>
+                <CardDescription>
+                  Transfer funds to the account below. Your wallet will be
+                  credited once the transfer is confirmed.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Bank</p>
+                    <p className="font-medium">{bankDetails.bankName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Account Name</p>
+                    <p className="font-medium">{bankDetails.accountName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Account Number</p>
+                    <p className="font-mono font-medium">
+                      {bankDetails.accountNumber}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Bank Code</p>
+                    <p className="font-mono text-xs">{bankDetails.bankCode}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setBankDetails(null)
+                    setNotice(null)
+                  }}
+                >
+                  Clear
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
           <div className="space-y-1.5">
@@ -197,6 +251,13 @@ export function WalletClient({
           </div>
 
           <div className="flex gap-2">
+            <Button
+              variant={method === "transfer_flutterwave" ? "default" : "outline"}
+              onClick={() => setMethod("transfer_flutterwave")}
+              disabled={busy}
+            >
+              Transfer (Flutterwave)
+            </Button>
             <Button
               variant={method === "card_paystack" ? "default" : "outline"}
               onClick={() => setMethod("card_paystack")}

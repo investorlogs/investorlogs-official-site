@@ -14,7 +14,23 @@ import { resolve } from "path"
 
 const XP_BASE_URL = (process.env.XCLUSIVE_PLUGS_API_URL ?? "https://www.xclusiveplugs.com/api/v1").replace(/\/+$/, "")
 const XP_API_KEY = process.env.XCLUSIVE_PLUGS_API_KEY?.trim() ?? ""
-const XP_TIMEOUT_MS = 20_000
+// Production page loads block on this supplier: a slow API means a slow page.
+// Keep it tight so one bad upstream can't stall the whole dashboard.
+const XP_TIMEOUT_MS = Number(process.env.XCLUSIVE_PLUGS_TIMEOUT_MS ?? 8_000)
+
+// Short-lived in-memory cache for the supplier catalog. The catalog barely
+// changes minute-to-minute, but every dashboard page load was refetching it
+// upstream (up to 10 paginated requests). Cache for 60s so repeat visits and
+// concurrent users share one upstream fetch.
+const CATALOG_TTL_MS = Number(process.env.XCLUSIVE_PLUGS_CATALOG_TTL_MS ?? 60_000)
+
+interface CatalogCacheEntry {
+  expiresAt: number
+  promise: Promise<XpLogCategory[] | null>
+}
+
+const catalogCache = (globalThis as unknown as { __xpCatalogCache?: Map<string, CatalogCacheEntry> })
+  .__xpCatalogCache ??= new Map<string, CatalogCacheEntry>()
 
 export function isMockProvider(): boolean {
   if (process.env.XCLUSIVE_PLUGS_MOCK === "true") return true
@@ -526,6 +542,22 @@ export async function fetchAllLogCategories(params?: {
   perPage?: number
 }): Promise<XpLogCategory[] | null> {
   if (isMockProvider()) return MOCK_LOG_CATEGORIES
+
+  const cacheKey = `${params?.parentId ?? "all"}:${Math.min(params?.perPage ?? 100, 100)}`
+  const now = Date.now()
+  const cached = catalogCache.get(cacheKey)
+  if (cached && cached.expiresAt > now) return cached.promise
+  // Share the in-flight fetch across concurrent page loads so 10 users
+  // hitting the page at once trigger ONE upstream fetch, not 10.
+  const promise = fetchAllLogCategoriesUncached(params).catch(() => null)
+  catalogCache.set(cacheKey, { expiresAt: now + CATALOG_TTL_MS, promise })
+  return promise
+}
+
+async function fetchAllLogCategoriesUncached(params?: {
+  parentId?: number
+  perPage?: number
+}): Promise<XpLogCategory[] | null> {
 
   const pageSize = Math.min(params?.perPage ?? 100, 100)
   const all: XpLogCategory[] = []

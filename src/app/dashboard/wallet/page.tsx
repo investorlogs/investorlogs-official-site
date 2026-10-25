@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
+import { CUSTOMER_HIDDEN_TRANSACTION_TYPES } from "@/lib/ledger-visibility"
 import { paymentsEnabled } from "@/lib/paymentProvider"
 import { WalletClient } from "@/app/dashboard/wallet/wallet-client"
 
@@ -33,7 +34,7 @@ export default async function WalletPage({
 
   const [transactions, user] = await prisma.$transaction([
     prisma.walletTransaction.findMany({
-      where: { userId },
+      where: { userId, type: { notIn: CUSTOMER_HIDDEN_TRANSACTION_TYPES } },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),

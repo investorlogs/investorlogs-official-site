@@ -3,6 +3,7 @@ import { z } from "zod"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
+import { encryptCredential, decryptCredential } from "@/lib/accountCredentials"
 import { adminAccountUploadSchema } from "@/lib/validations/accounts"
 
 /**
@@ -93,13 +94,22 @@ export async function POST(request: NextRequest) {
       uniqueLines.push(line)
     }
 
-    // Skip credentials already stocked in this category
+    // Existing stock may be legacy plaintext or enc:v1: ciphertext (random IV per
+    // row, so ciphertext equality can't be used for dedup). Decrypt to compare.
     const existing = await prisma.digitalAccount.findMany({
-      where: { categoryId, credentials: { in: uniqueLines } },
+      where: { categoryId },
       select: { credentials: true },
     })
-    const existingSet = new Set(existing.map((row) => row.credentials))
-    const toCreate = uniqueLines.filter((line) => !existingSet.has(line))
+    const existingPlain = new Set(
+      existing.map((row) => {
+        try {
+          return decryptCredential(row.credentials)
+        } catch {
+          return row.credentials
+        }
+      })
+    )
+    const toCreate = uniqueLines.filter((line) => !existingPlain.has(line))
     const duplicatesInDb = uniqueLines.length - toCreate.length
 
     let created = 0
@@ -112,7 +122,7 @@ export async function POST(request: NextRequest) {
           categoryId,
           title: `${baseTitle} #${String(index + 1).padStart(3, "0")}`,
           price: new Prisma.Decimal(price),
-          credentials,
+          credentials: encryptCredential(credentials),
           status: "AVAILABLE",
         })),
       })

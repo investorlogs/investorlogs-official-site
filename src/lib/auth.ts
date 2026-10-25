@@ -28,6 +28,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials")
         }
 
+        if (user.isBanned) {
+          throw new Error("This account has been suspended. Contact support.")
+        }
+
         if (!user.emailVerified) {
           throw new Error("Please verify your email first. Check your inbox for the 6-digit code.")
         }
@@ -52,7 +56,10 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    // Short-lived sessions so role/ban changes take effect within days.
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+    updateAge: 24 * 60 * 60,
   },
   pages: {
     signIn: "/auth/login",

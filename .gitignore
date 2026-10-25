@@ -73,3 +73,5 @@ next-env.d.ts
 /t.txt
 /tc*.txt
 /d[0-9].txt
+.vercel
+.env*

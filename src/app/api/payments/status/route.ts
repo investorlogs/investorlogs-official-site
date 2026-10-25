@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
+import { CUSTOMER_HIDDEN_TRANSACTION_TYPES } from "@/lib/ledger-visibility"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const [transactions, user] = await prisma.$transaction([
       prisma.walletTransaction.findMany({
-        where: { userId },
+        where: { userId, type: { notIn: CUSTOMER_HIDDEN_TRANSACTION_TYPES } },
         orderBy: { createdAt: "desc" },
         take: limit,
       }),

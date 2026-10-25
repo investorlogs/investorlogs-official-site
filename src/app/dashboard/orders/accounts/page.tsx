@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { requireSession } from "@/lib/session"
+import { decryptCredential } from "@/lib/accountCredentials"
 import { PurchasedOrders, type PurchasedAccount } from "./orders-client"
 
 export default async function AccountOrdersPage() {
@@ -17,7 +18,7 @@ export default async function AccountOrdersPage() {
     categoryName: account.category.name,
     price: account.price.toNumber(),
     purchasedAt: (account.purchasedAt ?? account.createdAt).toISOString(),
-    credentials: account.credentials,
+    credentials: decryptCredential(account.credentials),
   }))
 
   return (

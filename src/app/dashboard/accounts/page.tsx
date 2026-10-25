@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { prisma } from "@/lib/prisma"
 import { requireSession } from "@/lib/session"
 import {
@@ -6,11 +7,12 @@ import {
   isMockProvider,
   isXclusivePlugsConfigured,
   mapPlatform,
-  formatNaira,
   cleanTitle,
+  formatNaira,
 } from "@/lib/xclusivePlugs"
 import type { XpLogCategory } from "@/lib/xclusivePlugs"
 import { AccountsStore, type StoreCategory } from "./accounts-client"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export const dynamic = "force-dynamic"
 
@@ -200,7 +202,10 @@ function processCategories(categories: XpLogCategory[]): SupplierItem[] {
 export default async function AccountsPage() {
   await requireSession("/dashboard/accounts")
 
-  const [localCategories, stockByCategory, supplierItems] = await Promise.all([
+  // Local stock renders immediately; the supplier catalog streams in behind a
+  // skeleton. Previously the whole page blocked on up to 10 sequential
+  // upstream supplier requests — that was the "click takes forever" delay.
+  const [localCategories, stockByCategory] = await Promise.all([
     prisma.accountCategory.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.digitalAccount.groupBy({
       by: ["categoryId"],
@@ -208,7 +213,6 @@ export default async function AccountsPage() {
       _count: { _all: true },
       _min: { price: true },
     }),
-    loadSupplierCatalog(),
   ])
 
   const stockMap = new Map(
@@ -231,9 +235,33 @@ export default async function AccountsPage() {
     }
   })
 
-  // Merge supplier items into the store list. Supplier items get a synthetic
-  // slug derived from their platform so the purchase route can map them back
-  // to the XclusivePlugs category ID via config/productMap.json.
+  const allCategories = [...localStore]
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Buy Accounts</h2>
+        <p className="text-muted-foreground">
+          Ready-made digital accounts delivered instantly to your order
+          history after purchase.
+        </p>
+      </div>
+
+      <AccountsStore categories={allCategories} />
+
+      <Suspense fallback={<SupplierSkeleton />}>
+        <SupplierSection />
+      </Suspense>
+    </div>
+  )
+}
+
+/** Streams the slow supplier catalog in after the page shell has rendered. */
+async function SupplierSection() {
+  const supplierItems = await loadSupplierCatalog()
+
+  if (supplierItems.length === 0) return null
+
   const supplierStore: StoreCategory[] = supplierItems.map((item) => ({
     id: `xp-${item.id}`,
     name: item.name,
@@ -245,22 +273,18 @@ export default async function AccountsPage() {
     fromPrice: item.price > 0 ? item.price + 2000 : null,
   }))
 
-  const allCategories = [...supplierStore, ...localStore]
+  return <AccountsStore categories={supplierStore} />
+}
 
+function SupplierSkeleton() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Buy Accounts</h2>
-        <p className="text-muted-foreground">
-          Ready-made digital accounts delivered instantly to your order
-          history after purchase.
-          {isXclusivePlugsConfigured()
-            ? ` Showing ${supplierItems.length} live listings from our supplier.`
-            : ""}
-        </p>
+    <div className="space-y-3">
+      <Skeleton className="h-5 w-48" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-40 w-full" />
+        ))}
       </div>
-
-      <AccountsStore categories={allCategories} />
     </div>
   )
 }

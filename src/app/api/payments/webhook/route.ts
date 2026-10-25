@@ -6,14 +6,16 @@ import {
   extractReference,
 } from "@/lib/deposit-settlement"
 import { settleDeposit } from "@/lib/settleDeposit"
+import { FlutterwaveProviderError, flutterwaveNormalizeProviderStatus, flutterwaveKoboToNaira } from "@/lib/flutterwave"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 /**
- * Receives payment confirmation webhooks.
+ * Receives payment confirmation webhooks from Paystack and Flutterwave.
  *
  * - Paystack sends `x-paystack-signature` (HMAC-SHA512 of raw body).
+ * - Flutterwave sends `x-flutterwave-signature` (HMAC-SHA256 of raw body).
  * - Mock provider (tests) sends `x-mock-signature` (HMAC-SHA256 of raw body,
  *   signed with `MOCK_WEBHOOK_SECRET`).
  *
@@ -21,32 +23,40 @@ export const runtime = "nodejs"
  * COMPLETED or FAILED based on the provider's "status" field.
  */
 export async function POST(request: NextRequest) {
-  const signature = request.headers.get("x-paystack-signature") ?? ""
+  const paystackSignature = request.headers.get("x-paystack-signature") ?? ""
+  const flutterwaveSignature = request.headers.get("x-flutterwave-signature") ?? ""
   const mockSignature = request.headers.get("x-mock-signature") ?? ""
 
   // The mock provider is a local/test affordance only. In production only the
-  // real gateway (Paystack) may settle a deposit.
+  // real gateways (Paystack, Flutterwave) may settle a deposit.
   const mockAllowed = process.env.NODE_ENV !== "production"
 
-  const provider: "mock" | "paystack" | null = mockSignature
-    ? mockAllowed
-      ? "mock"
-      : null
-    : signature
-      ? "paystack"
-      : null
-  if (mockSignature && !mockAllowed) {
+  const providerHeader =
+    flutterwaveSignature
+      ? "flutterwave"
+      : paystackSignature
+        ? "paystack"
+        : mockSignature
+          ? "mock"
+          : null
+
+  if (providerHeader === "mock" && !mockAllowed) {
     return NextResponse.json({ error: "Mock webhooks are disabled" }, { status: 403 })
   }
 
-  if (!provider) {
+  if (!providerHeader) {
     return NextResponse.json({ error: "Missing signature header" }, { status: 401 })
   }
 
   const rawBody = await request.text()
-  const sig = provider === "mock" ? mockSignature : signature
+  const sig =
+    providerHeader === "mock"
+      ? mockSignature
+      : providerHeader === "paystack"
+        ? paystackSignature
+        : flutterwaveSignature
 
-  if (!verifyWebhookSignature(rawBody, sig, provider)) {
+  if (!verifyWebhookSignature(rawBody, sig, providerHeader)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
   }
 
@@ -81,7 +91,7 @@ export async function POST(request: NextRequest) {
 
   // Anything else — credited, already settled, marked failed, still pending,
   // amount mismatch, not a deposit — is a successfully handled event and gets
-  // a 200 so Paystack stops retrying it.
+  // a 200 so Paystack/Flutterwave stops retrying it.
   return NextResponse.json({ received: true, outcome: result.outcome })
 }
 
